@@ -1,0 +1,107 @@
+.main-content {
+  flex: 1;
+  background-color: var(--lila-claro);
+}
+
+/* CARDS */
+.content-card {
+  min-height: 300px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(6px);
+  padding: 25px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  transition: 0.25s;
+}
+
+
+.content-card h3 {
+  color: #4a3f63;
+  font-weight: 700;
+}
+
+/* TABLA DE LISTADO */
+
+/* Contenedor para hacer la tabla responsiva */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 15px;
+  border-radius: 12px;
+}
+
+/* Estilos principales de la tabla */
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: sans-serif; /* Cambiala por la de tu proyecto */
+  font-size: 0.95rem;
+}
+
+/* Cabecera en sintonía con los tonos violetas */
+.custom-table th {
+  background-color: rgba(74, 63, 99, 0.08); /* Usamos el color de tu h3 con transparencia */
+  color: #4a3f63;
+  padding: 12px 16px;
+  font-weight: 600;
+  border-bottom: 2px solid rgba(74, 63, 99, 0.15);
+}
+
+/* Celdas del cuerpo */
+.custom-table td {
+  padding: 12px 16px;
+  color: #555;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+/* Efecto hover en las filas para mejorar la lectura */
+.custom-table tbody tr:hover td {
+  background-color: rgba(74, 63, 99, 0.03);
+}
+
+/* Opcional: Elimina el borde de la última fila para que no choque con el radio de la tarjeta */
+.custom-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Centrar el contenido de la columna de acciones */
+.text-center {
+  text-align: center;
+}
+
+/* Estilo para el botón del lápiz */
+.btn-edit {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 6px;
+  border-radius: 8px;
+  color: #4a3f63; /* El violeta de tu diseño */
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Efecto hover: se pinta con un fondo sutil y se agranda un poquito */
+.btn-edit:hover {
+  background-color: rgba(74, 63, 99, 0.1);
+  transform: scale(1.1);
+}
+
+/* Esto hace que el contenedor de la tabla sea flexible */
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* Opcional: para que los textos largos no desborden celdas */
+.content-card table {
+    table-layout: auto;
+    width: 100%;
+    word-wrap: break-word;
+}
+

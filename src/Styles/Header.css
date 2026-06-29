@@ -1,0 +1,28 @@
+.main-header {
+  height: 80px;
+  background-color: var(--azul-principal);
+  color: white;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
+
+.logo-box {
+  width: 58px;
+  height: 58px;
+  background-color: rgba(255,255,255,0.15);
+  border-radius: 14px;
+  color: white;
+  font-size: 1.2rem;
+  transition: 0.25s;
+  backdrop-filter: blur(3px);
+}
+
+.logo-box:hover {
+  transform: scale(1.05);
+  background-color: rgba(255,255,255,0.25);
+}
+
+.user-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}

@@ -1,0 +1,137 @@
+/* Contenedor del formulario */
+
+.form-cotizacion {
+  margin-top: 20px;
+  font-family: sans-serif;
+}
+
+/* Grilla responsive de dos columnas */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .form-grid {
+    /* Cambiamos a 1 sola columna para que no explote hacia los lados */
+    grid-template-columns: 1fr; 
+    gap: 12px;
+  }
+  
+  /* Hacemos que todos ocupen el ancho completo de la tarjeta */
+  .col-span-2 {
+    grid-column: span 1;
+  }
+}
+
+/* Opcional: Si querés que SOLO el número y la fecha vayan juntos porque son cortos */
+@media (min-width: 1200px) {
+  /* Podés dejar que convivan en la misma fila si la pantalla es ENORME */
+  /* Pero por ahora, dejarlo en 1fr va a solucionar el desborde al 100% */
+}
+
+/* Grupos de campos individuales */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  color: #4a3f63;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+/* Inputs, selectores y textareas genéricos */
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="datetime-local"],
+.form-group select,
+.form-group textarea {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(74, 63, 99, 0.2);
+  background: rgba(255, 255, 255, 0.6);
+  color: #333;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #4a3f63;
+  box-shadow: 0 0 0 3px rgba(74, 63, 99, 0.15);
+  background: #fff;
+}
+
+/* Estilos de error solicitados (asterisco y texto en rojo corto) */
+.form-group .input-error {
+  border-color: #e53e3e !important;
+  background-color: rgba(229, 62, 62, 0.02);
+}
+
+.form-group .error-msg {
+  color: #e53e3e;
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Custom Checkbox con estilo moderno */
+.checkbox-group {
+  justify-content: center;
+  padding-top: 15px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #4a3f63 !important;
+  font-weight: 600;
+  user-select: none;
+}
+
+.checkbox-container input {
+  margin-right: 10px;
+  accent-color: #4a3f63; /* Cambia el color nativo del check al lila */
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+}
+
+/* Botón de Envíos */
+.form-actions {
+  margin-top: 25px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-submit {
+  background-color: #4a3f63;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(74, 63, 99, 0.25);
+  transition: all 0.25s ease;
+}
+
+.btn-submit:hover {
+  background-color: #382f4c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(74, 63, 99, 0.35);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}

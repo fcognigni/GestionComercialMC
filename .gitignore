@@ -1,0 +1,125 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# =========================
+# Visual Studio / .NET
+# =========================
+
+.vs/
+**/.vs/
+
+# Archivos de compilación
+bin/
+obj/
+
+# Archivos de usuario de Visual Studio
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Archivos temporales
+*.tmp
+*.temp
+*.log
+
+# Archivos generados por compilación
+*.dll
+*.pdb
+*.cache
+
+
+# =========================
+# ASP.NET / .NET Core
+# =========================
+
+# Configuración local (puede contener secretos)
+appsettings.Development.json
+
+# Archivos de publicación
+publish/
+*.Publish.xml
+
+# Carpetas de resultados
+artifacts/
+
+
+# =========================
+# Node / React
+# =========================
+
+# Dependencias instaladas
+node_modules/
+
+# Builds de producción
+dist/
+build/
+
+# Archivos temporales de npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.npm/
+.eslintcache
+
+
+# =========================
+# Variables de entorno
+# =========================
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+
+# =========================
+# Sistema operativo
+# =========================
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+
+
+# =========================
+# IDEs varios
+# =========================
+
+.idea/
+.vscode/
+
+
+# =========================
+# Cobertura de tests
+# =========================
+
+coverage/

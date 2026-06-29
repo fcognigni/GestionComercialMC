@@ -1,0 +1,33 @@
+
+/* GOOGLE ICONS */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0&display=swap');
+
+:root {
+  --azul-principal: #165a9f;
+  --lila-principal: #8f6cd6;
+  --lila-claro: #ebe3ff;
+  --texto-claro: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+}
+
+body {
+  background-color: var(--lila-claro);
+}
+
+/* APP GENERAL */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.body-layout {
+  flex: 1;
+  display: flex;
+}
