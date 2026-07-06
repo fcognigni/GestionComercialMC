@@ -2,6 +2,7 @@ import React from "react";
 import { useState } from "react";
 import { useEffect } from "react";
 import '../Styles/Cotizacion.css'
+import mammoth from 'mammoth'
 
 export default function FormCotizacion({
   onSuccess,
@@ -339,6 +340,87 @@ export default function FormCotizacion({
     }
   };
 
+  /* CARGA DE COTIZACION POR ARCHIVO */
+
+  const [extractedData, setExtractedData] = useState({});
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+      const arrayBuffer = e.target.result;
+
+      try {
+        // 1. Convertimos el archivo Word a HTML usando mammoth
+        const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+        const htmlContent = result.value;
+
+        // 2. Usamos el DOMParser nativo del navegador para "leer" ese HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlContent, 'text/html');
+
+        // 3. Buscamos los marcadores específicos
+        const marcadoresBuscados = ['Prefijo', 'Numero', 'Fecha', 'Ref', 'Cliente', 'Solicitante', 'Moneda', 'Subtotal'];
+        const datosExtraidos = {};
+
+        marcadoresBuscados.forEach(idMarcador => {
+          const elemento = doc.getElementById(idMarcador);
+          if (elemento) {
+            // Limpiamos los espacios en blanco que puedan venir del Word (.trim())
+            datosExtraidos[idMarcador] = (elemento.textContent || elemento.nextSibling?.textContent || "").trim();
+          }
+        });
+
+        setExtractedData(datosExtraidos);
+
+        // --- LÓGICA DE AUTOCOMPLETADO EN EL FORMULARIO ---
+
+        // A) Combinar Prefijo y Número (ej: "COT" y "123" -> "COT-123" o como prefieras unirlos)
+        const prefijo = datosExtraidos['Prefijo'] || "";
+        const numeroDoc = datosExtraidos['Numero'] || "";
+        const numeroCompleto = prefijo && numeroDoc ? `${prefijo}-${numeroDoc}` : (numeroDoc || prefijo);
+
+        // B) Buscar la coincidencia más cercana para el Cliente
+        let idClienteDetectado = "";
+        const clienteWord = datosExtraidos['Cliente']?.toLowerCase() || "";
+
+        if (clienteWord && clientes.length > 0) {
+          // Buscamos un cliente en nuestro estado cuyo nombre esté incluido en el texto del Word o viceversa
+          const clienteEncontrado = clientes.find(c =>
+            c.nombre.toLowerCase().includes(clienteWord) ||
+            clienteWord.includes(c.nombre.toLowerCase())
+          );
+
+          if (clienteEncontrado) {
+            idClienteDetectado = clienteEncontrado.id.toString();
+            console.log(idClienteDetectado) // Lo pasamos a string para el <select>
+          }
+        }
+
+        // C) Limpiar el monto (Subtotal) por si trae signos de pesos o caracteres raros
+        // Deja solo números, comas y puntos
+        const subtotalLimpio = datosExtraidos['Subtotal'] ? datosExtraidos['Subtotal'].replace(/[^0-9.,]/g, "") : "";
+
+        // D) Actualizar el formData para que impacte en los inputs directamente
+        setFormData(prev => ({
+          ...prev,
+          numero: numeroCompleto,
+          referencia: datosExtraidos['Ref'] || "",
+          idCliente: idClienteDetectado,
+          monto: subtotalLimpio
+          // La fecha la dejamos afuera por ahora como pediste para armar su función después
+        }));
+
+      } catch (error) {
+        console.error("Error al procesar el archivo Word:", error);
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
 
   return (
 
@@ -347,6 +429,14 @@ export default function FormCotizacion({
 
       <form onSubmit={handleSubmit} className="form-cotizacion" noValidate>
         <div className="form-grid">
+
+          <div className="form-group">
+            <input type="file" accept=".docx" onChange={handleFileUpload} />
+            {/*
+            <p>Datos de los Marcadores:</p>
+            <pre>{JSON.stringify(extractedData, null, 1)}</pre>
+            */}
+          </div>
 
           {/* Número */}
           <div className="form-group">
