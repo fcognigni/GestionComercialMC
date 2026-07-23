@@ -169,15 +169,15 @@ export default function FormCliente({
             );
 
 
-           if (!response.ok) {
+            if (!response.ok) {
 
-    const errorData = await response.text();
+                const errorData = await response.text();
 
-    console.log("Respuesta API:", errorData);
+                console.log("Respuesta API:", errorData);
 
-    throw new Error(errorData);
+                throw new Error(errorData);
 
-}
+            }
 
 
             const data = await response.json();
@@ -215,6 +215,8 @@ export default function FormCliente({
             return;
         }
 
+        console.log("sin errores de validación")
+
         try {
 
             setLoading(true);
@@ -222,6 +224,21 @@ export default function FormCliente({
 
             const esEdicion =
                 formData.id > 0;
+
+            console.log("esperando respuesta")
+
+            const body = {
+                id: formData.id,
+                nombre: formData.nombre,
+                cuit: formData.cuit,
+                localidad: formData.localidad,
+                calle: formData.calle,
+                numero: formData.numero,
+                activo: formData.activo
+            };
+
+            console.log(body);
+            console.log(JSON.stringify(body));
 
             const response =
                 await fetch(
@@ -237,26 +254,16 @@ export default function FormCliente({
                             "Content-Type":
                                 "application/json"
                         },
-                        body: JSON.stringify({
-                            id:
-                                formData.id,
-                            nombre:
-                                formData.nombre,
-                            cuit:
-                                formData.cuit,
-                            localidad:
-                                formData.localidad,
-                            calle:
-                                formData.calle,
-                            numero:
-                                formData.numero
-                                    ? Number(formData.numero)
-                                    : null,
-                            activo:
-                                formData.activo
-                        })
+                        body: JSON.stringify(body)
                     }
                 );
+
+            console.log("hubo respuesta")
+            console.log(response.status);
+
+            const texto = await response.text();
+
+            console.log(texto);
 
             if (!response.ok) {
                 throw new Error(

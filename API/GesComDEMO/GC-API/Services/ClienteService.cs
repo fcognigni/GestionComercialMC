@@ -72,10 +72,8 @@ namespace APIGesCom.Services
                 Add("@Localidad", SqlDbType.NVarChar, 50).Value = cliente.Localidad ?? (object)DBNull.Value;
             cmd.Parameters.
                 Add("@Calle", SqlDbType.NVarChar, 100).Value = cliente.Calle ?? (object)DBNull.Value;
-            cmd.Parameters.AddWithValue(
-                "@Numero",
-                cliente.Numero ?? (object)DBNull.Value
-            );
+            cmd.Parameters.Add(
+                "@Numero", SqlDbType.NVarChar, 10).Value = cliente.Numero ?? (object)DBNull.Value;
 
             conn.Open();
 

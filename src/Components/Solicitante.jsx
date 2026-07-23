@@ -136,12 +136,6 @@ export default function FormSolicitante({
                 "* Debe seleccionar un cliente";
         }
 
-        if (!formData.telefono.trim()) {
-
-            nuevosErrores.telefono =
-                "* Teléfono obligatorio";
-        }
-
         if (!formData.email.trim()) {
 
             nuevosErrores.email =
@@ -267,6 +261,8 @@ export default function FormSolicitante({
             return;
         }
 
+        console.log("sin errores")
+
         try {
 
             setLoading(true);
@@ -274,6 +270,7 @@ export default function FormSolicitante({
             const esEdicion =
                 formData.id > 0;
 
+            console.log("viendo si hay respuesta")
             const response =
                 await fetch(
 
@@ -311,6 +308,7 @@ export default function FormSolicitante({
                     }
                 );
 
+            console.log("hay respuesta")
             if (!response.ok) {
 
                 throw new Error(
