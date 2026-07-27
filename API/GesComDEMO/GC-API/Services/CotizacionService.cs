@@ -24,6 +24,7 @@ public class CotizacionService : ICotizacionService
 
         cmd.CommandType = CommandType.StoredProcedure;
 
+        cmd.Parameters.AddWithValue("@Prefijo", cotizacion.Prefijo);
         cmd.Parameters.AddWithValue("@Numero", cotizacion.Numero);
         cmd.Parameters.AddWithValue("@IdCliente", cotizacion.IdCliente);
         cmd.Parameters.AddWithValue("@IdObra", (object?)cotizacion.IdObra ?? DBNull.Value);
@@ -108,6 +109,7 @@ public class CotizacionService : ICotizacionService
         cmd.CommandType = CommandType.StoredProcedure;
 
         cmd.Parameters.AddWithValue("@Id", cotizacion.Id);
+        cmd.Parameters.AddWithValue("@Prefijo", cotizacion.Prefijo);
         cmd.Parameters.AddWithValue("@Numero", cotizacion.Numero);
         cmd.Parameters.AddWithValue("@IdCliente", cotizacion.IdCliente);
         cmd.Parameters.AddWithValue("@IdObra", (object?)cotizacion.IdObra ?? DBNull.Value);
@@ -147,6 +149,7 @@ public class CotizacionService : ICotizacionService
         return new Cotizacion
         {
             Id = Convert.ToInt64(reader["Id"]),
+            Prefijo = Convert.ToInt32(reader["Prefijo"]),
             Numero = Convert.ToInt32(reader["Numero"]),
             IdCliente = Convert.ToInt64(reader["IdCliente"]),
             IdObra = reader["IdObra"] == DBNull.Value

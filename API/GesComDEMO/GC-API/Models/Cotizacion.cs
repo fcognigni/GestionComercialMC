@@ -4,6 +4,8 @@
     {
         public long Id { get; set; }
 
+        public int Prefijo { get; set; }
+
         public int Numero { get; set; }
 
         public long IdCliente { get; set; }

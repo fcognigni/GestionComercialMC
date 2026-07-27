@@ -322,6 +322,8 @@ GO
 CREATE TABLE AppData.Cotizacion (
     Id BIGINT IDENTITY(1,1) PRIMARY KEY,
 
+    Prefijo INT NOT NULL,
+
     Numero INT NOT NULL,
 
     IdCliente BIGINT NOT NULL,
@@ -438,8 +440,8 @@ BEGIN
         WHERE
             AppData.fnTextoNumeros(Nombre) = 0
            -- OR AppData.fnCUITValido(CUIT) = 0
-            OR AppData.fnSoloTexto(Localidad) = 0
-            OR AppData.fnSoloTexto(Calle) = 0
+           -- OR AppData.fnSoloTexto(Localidad) = 0
+           -- OR AppData.fnSoloTexto(Calle) = 0
             OR AppData.fnSoloNumeros(Numero) = 0
     )
     BEGIN
@@ -1285,6 +1287,7 @@ GO
 
 CREATE PROCEDURE AppData.spInsertarCotizacion
 (
+    @Prefijo INT,
     @Numero INT,
     @IdCliente BIGINT,
     @IdObra BIGINT = NULL,
@@ -1300,6 +1303,7 @@ BEGIN
 
     INSERT INTO AppData.Cotizacion
     (
+        Prefijo,
         Numero,
         IdCliente,
         IdObra,
@@ -1311,6 +1315,7 @@ BEGIN
     )
     VALUES
     (
+        @Prefijo,
         @Numero,
         @IdCliente,
         @IdObra,
@@ -1336,6 +1341,7 @@ BEGIN
 
     SELECT
         Id,
+        Prefijo,
         Numero,
         IdCliente,
         IdObra,
@@ -1353,7 +1359,8 @@ GO
 
 CREATE PROCEDURE AppData.spModificarCotizacion
 (
-    @Id BIGINT,
+    @Id INT,
+    @Prefijo INT,
     @Numero INT,
     @IdCliente BIGINT,
     @IdObra BIGINT = NULL,
@@ -1369,6 +1376,7 @@ BEGIN
 
     UPDATE AppData.Cotizacion
     SET
+        Prefijo = @Prefijo,
         Numero = @Numero,
         IdCliente = @IdCliente,
         IdObra = @IdObra,
@@ -1403,6 +1411,7 @@ BEGIN
 
     SELECT
         Id,
+        Prefijo,
         Numero,
         IdCliente,
         IdObra,

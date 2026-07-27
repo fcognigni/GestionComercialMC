@@ -127,6 +127,29 @@ export default function FormCotizacion({
     }
   };
 
+  const handleNumeroChange = (e) => {
+
+    const valor = formatearNumeroCotizacion(e.target.value);
+
+    setFormData(prev => ({
+      ...prev,
+      numero: valor
+    }));
+  };
+
+  const handleNumeroBlur = () => {
+
+    let [prefijo = "", numero = ""] = formData.numero.split("-");
+
+    prefijo = prefijo.padStart(4, "0");
+    numero = numero.padStart(8, "0");
+
+    setFormData(prev => ({
+      ...prev,
+      numero: `${prefijo}-${numero}`
+    }));
+  };
+
   const normalizarNumero = (numero) => {
 
     const soloDigitos =
@@ -135,6 +158,37 @@ export default function FormCotizacion({
     return Number(soloDigitos);
   };
 
+  const formatearNumeroCotizacion = (texto) => {
+
+    // dejamos únicamente números y un "-"
+    texto = texto.replace(/[^\d-]/g, "");
+
+    // sólo un guión
+    const partes = texto.split("-");
+
+    let prefijo = partes[0] || "";
+    let numero = partes.slice(1).join("");
+
+    // si todavía no escribió el guión
+    if (partes.length === 1) {
+
+      if (prefijo.length <= 4)
+        return prefijo;
+
+      numero = prefijo.substring(4);
+      prefijo = prefijo.substring(0, 4);
+    }
+
+    prefijo = prefijo.substring(0, 4);
+    numero = numero.substring(0, 8);
+
+    if (texto.includes("-")) {
+      return `${prefijo.padStart(4, "0")}-${numero}`;
+    }
+
+    return prefijo;
+  }
+
 
   const validar = () => {
 
@@ -142,8 +196,7 @@ export default function FormCotizacion({
 
     // Número
 
-    const regexNumero =
-      /^\d+(-\d+)?$/;
+    const regexNumero = /^\d{4}-\d{8}$/;
 
     if (
       !regexNumero.test(
@@ -267,6 +320,9 @@ export default function FormCotizacion({
           formData.monto.replace(",", ".")
         );
 
+      const [prefijo, numero] =
+        formData.numero.split("-");
+
 
       const response =
         await fetch(
@@ -288,8 +344,10 @@ export default function FormCotizacion({
 
             body: JSON.stringify({
 
+              prefijo: Number(prefijo),
+
               numero:
-                numeroNormalizado,
+                Number(numero),
 
               idCliente:
                 Number(formData.idCliente),
@@ -344,6 +402,36 @@ export default function FormCotizacion({
 
   const [extractedData, setExtractedData] = useState({});
 
+  function convertirFechaWord(fechaTexto) {
+
+    const meses = {
+      enero: "01",
+      febrero: "02",
+      marzo: "03",
+      abril: "04",
+      mayo: "05",
+      junio: "06",
+      julio: "07",
+      agosto: "08",
+      septiembre: "09",
+      octubre: "10",
+      noviembre: "11",
+      diciembre: "12"
+    };
+
+    const match = fechaTexto.match(
+      /(\d{1,2})\s+de\s+([A-Za-zÁÉÍÓÚáéíóú]+)\s+de\s+(\d{4})/
+    );
+
+    if (!match) return "";
+
+    const dia = match[1].padStart(2, "0");
+    const mes = meses[match[2].toLowerCase()];
+    const anio = match[3];
+
+    return `${anio}-${mes}-${dia}`;
+  }
+
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -362,30 +450,130 @@ export default function FormCotizacion({
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlContent, 'text/html');
 
-        // 3. Buscamos los marcadores específicos
-        const marcadoresBuscados = ['Prefijo', 'Numero', 'Fecha', 'Ref', 'Cliente', 'Solicitante', 'Moneda', 'Subtotal'];
-        const datosExtraidos = {};
+        const bloques = [
+          ...doc.querySelectorAll("p, td")
+        ]
+          .map(e => e.textContent.trim())
+          .filter(t => t.length > 0);
 
-        marcadoresBuscados.forEach(idMarcador => {
-          const elemento = doc.getElementById(idMarcador);
-          if (elemento) {
-            // Limpiamos los espacios en blanco que puedan venir del Word (.trim())
-            datosExtraidos[idMarcador] = (elemento.textContent || elemento.nextSibling?.textContent || "").trim();
+        console.log(bloques);
+
+        const presupuesto = bloques.find(t =>
+          t.startsWith("Presupuesto")
+        );
+
+        let prefijo = "";
+        let numero = "";
+
+        if (presupuesto) {
+
+          const match = presupuesto.match(/(\d{1,4})\s*-\s*(\d{1,8})/);
+
+          if (match) {
+
+            prefijo = match[1];
+
+            numero = match[2];
+
           }
-        });
 
+        }
+
+        const regexFecha = /(\d{1,2})\s+de\s+([A-Za-zÁÉÍÓÚáéíóúÑñ]+)\s+de\s+(\d{4})/i;
+
+        const fechaTexto = bloques.find(t => regexFecha.test(t));
+
+        const indiceFecha =
+          bloques.findIndex(t => t.includes("Córdoba"));
+
+        const cliente =
+          indiceFecha >= 0
+            ? bloques[indiceFecha + 1]
+            : "";
+
+        const solicitante =
+          bloques.find(t =>
+            t.startsWith("Atte.:")
+          )?.replace("Atte.:", "").trim();
+
+        const referencia =
+          bloques.find(t =>
+            t.startsWith("REF:")
+          )?.replace("REF:", "").trim();
+
+        const indiceRef =
+          bloques.findIndex(t =>
+            t.startsWith("REF:")
+          );
+
+        let descripcion = "";
+
+        if (
+          indiceRef >= 0 &&
+          indiceRef + 1 < bloques.length &&
+          !bloques[indiceRef + 1].startsWith("MONTO TOTAL")
+        ) {
+
+          descripcion =
+            bloques[indiceRef + 1];
+
+        }
+
+        const indiceMonto =
+          bloques.findIndex(t =>
+            t === "MONTO TOTAL"
+          );
+
+        const montoTexto =
+          indiceMonto >= 0
+            ? bloques[indiceMonto + 1]
+            : "";
+
+        const matchMonto =
+          montoTexto.match(
+            /^([A-Za-z$€U\$]+)\s*([\d.,]+)/
+          );
+
+        let moneda = "";
+        let subtotal = "";
+
+        if (matchMonto) {
+
+          moneda = matchMonto[1];
+
+          subtotal = matchMonto[2];
+
+        }
+
+        const datosExtraidos = {
+
+          prefijo,
+
+          numero,
+
+          fecha,
+
+          cliente,
+
+          solicitante,
+
+          referencia,
+
+          descripcion,
+
+          subtotal,
+
+          moneda
+
+        };
+
+        console.log(datosExtraidos);
         setExtractedData(datosExtraidos);
 
         // --- LÓGICA DE AUTOCOMPLETADO EN EL FORMULARIO ---
-
-        // A) Combinar Prefijo y Número (ej: "COT" y "123" -> "COT-123" o como prefieras unirlos)
-        const prefijo = datosExtraidos['Prefijo'] || "";
-        const numeroDoc = datosExtraidos['Numero'] || "";
-        const numeroCompleto = prefijo && numeroDoc ? `${prefijo}-${numeroDoc}` : (numeroDoc || prefijo);
-
         // B) Buscar la coincidencia más cercana para el Cliente
         let idClienteDetectado = "";
-        const clienteWord = datosExtraidos['Cliente']?.toLowerCase() || "";
+        const clienteWord = datosExtraidos['cliente']?.toLowerCase() || "";
 
         if (clienteWord && clientes.length > 0) {
           // Buscamos un cliente en nuestro estado cuyo nombre esté incluido en el texto del Word o viceversa
@@ -400,18 +588,26 @@ export default function FormCotizacion({
           }
         }
 
-        // C) Limpiar el monto (Subtotal) por si trae signos de pesos o caracteres raros
-        // Deja solo números, comas y puntos
-        const subtotalLimpio = datosExtraidos['Subtotal'] ? datosExtraidos['Subtotal'].replace(/[^0-9.,]/g, "") : "";
-
-        // D) Actualizar el formData para que impacte en los inputs directamente
+        // Actualizar el formData para que impacte en los inputs directamente
         setFormData(prev => ({
+
           ...prev,
-          numero: numeroCompleto,
-          referencia: datosExtraidos['Ref'] || "",
-          idCliente: idClienteDetectado,
-          monto: subtotalLimpio
-          // La fecha la dejamos afuera por ahora como pediste para armar su función después
+
+          numero:
+            formatearNumeroCotizacion(
+              `${prefijo}-${numero}`
+            ),
+
+          referencia,
+
+          descripcion,
+
+          monto:
+            subtotal,
+
+          idCliente:
+            idClienteDetectado
+
         }));
 
       } catch (error) {
@@ -443,7 +639,8 @@ export default function FormCotizacion({
             <label htmlFor="numero">Número de Cotización</label>
             <input type="text" id="numero"
               value={formData.numero}
-              onChange={handleChange}
+              onChange={handleNumeroChange}
+              onBlur={handleNumeroBlur}
               name="numero" className={errors.numero ? 'input-error' : ''} />
             {errors.numero && <span className="error-msg">{errors.numero}</span>}
           </div>
