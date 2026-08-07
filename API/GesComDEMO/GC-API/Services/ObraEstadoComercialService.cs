@@ -208,9 +208,9 @@ namespace APIGesCom.Services
                     : reader["Observaciones"].ToString(),
 
                 Sucesores =
-    reader["Sucesores"] == DBNull.Value
-        ? null
-        : reader["Sucesores"].ToString(),
+                    reader["Sucesores"] == DBNull.Value
+                    ? null
+                    : reader["Sucesores"].ToString(),
 
                 NombreEstadoComercial = reader["NombreEstadoComercial"].ToString()
             };

@@ -297,7 +297,9 @@ CREATE TABLE AppData.Obra (
 
     IdCliente BIGINT NOT NULL,
 
-    Descripcion NVARCHAR(300) NOT NULL,
+    Referencia NVARCHAR(100) NOT NULL,
+
+    Descripcion NVARCHAR(1500) DEFAULT NULL,
 
     FechaAlta DATETIME DEFAULT GETDATE(),
 
@@ -981,6 +983,7 @@ BEGIN
 SELECT
     OEC.Id,
     OEC.IdObra,
+    O.Referencia as Referencia,
     OEC.IdEstadoComercial,
     EC.Nombre as NombreEstadoComercial,
     EC.Sucesores,
@@ -988,6 +991,8 @@ SELECT
     OEC.Observaciones,
     OEC.Activo
 FROM AppData.ObraEstadoComercial OEC
+INNER JOIN AppData.Obra O
+    ON O.Id = OEC.IdObra
 INNER JOIN AppData.EstadoComercial EC
     ON OEC.IdEstadoComercial =
        EC.Id
@@ -1047,7 +1052,7 @@ BEGIN
         O.Id AS Id,
         C.Id AS IdCliente,
         C.Nombre AS NombreCliente,
-        O.Descripcion AS Descripcion,
+        O.Referencia AS Referencia,
         O.FechaAlta AS Fecha,
         O.MontoPactado AS Monto,
         O.IdSolicitante AS IdSolicitante,
@@ -1091,7 +1096,7 @@ GO
 
 CREATE PROCEDURE AppData.spInsertarObra
     @IdCliente BIGINT,
-    @Descripcion NVARCHAR(300),
+    @Referencia NVARCHAR(100),
     @MontoPactado DECIMAL(18,2),
     @IdSolicitante BIGINT,
     @IdEstadoComercial INT
@@ -1099,39 +1104,32 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Declaramos la variable para guardar el ID de la obra recién creada
     DECLARE @IdObra BIGINT; 
 
     BEGIN TRY
-        -- Iniciamos una transacción para asegurar que ambos INSERTS ocurran, o ninguno
         BEGIN TRANSACTION;
 
-        -- 1. Insertamos la Obra
         INSERT INTO AppData.Obra
-            (IdCliente, Descripcion, MontoPactado, IdSolicitante)
+            (IdCliente, Referencia, MontoPactado, IdSolicitante)
         VALUES
-            (@IdCliente, @Descripcion, @MontoPactado, @IdSolicitante);
+            (@IdCliente, @Referencia, @MontoPactado, @IdSolicitante);
 
-        -- 2. Capturamos el ID autogenerado de la Obra recién insertada
         SET @IdObra = SCOPE_IDENTITY();
 
-        -- 3. Insertamos en la tabla relacional usando el ID capturado
         INSERT INTO AppData.ObraEstadoComercial
             (IdObra, IdEstadoComercial)
         VALUES
             (@IdObra, @IdEstadoComercial);
 
-        -- Si todo salió bien, confirmamos los cambios en la base de datos
         COMMIT TRANSACTION;
 
-        -- Devolvemos el mensaje de éxito (e incluimos el IdObra por si tu backend lo necesita)
         SELECT 1 AS OK,
                'OBRA CREADA CORRECTAMENTE' AS MESSAGE,
                @IdObra AS IdObra;
 
     END TRY
     BEGIN CATCH
-        -- Si algo falló dentro del bloque TRY, deshacemos cualquier cambio incompleto
+        
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
 
@@ -1148,7 +1146,7 @@ GO
 CREATE PROCEDURE AppData.spModificarObra
 @Id BIGINT,
 @IdCliente BIGINT,
-@Descripcion NVARCHAR(300),
+@Referencia NVARCHAR(300),
 @MontoPactado DECIMAL(18,2),
 @IdSolicitante BIGINT
 AS
@@ -1160,7 +1158,7 @@ BEGIN
 
     UPDATE AppData.Obra
     SET IdCliente = @IdCliente,
-        Descripcion = @Descripcion,
+        Referencia = Referencia,
         MontoPactado = @MontoPactado,
         IdSolicitante = @IdSolicitante
 

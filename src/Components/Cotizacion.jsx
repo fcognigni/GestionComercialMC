@@ -479,9 +479,15 @@ export default function FormCotizacion({
 
         }
 
-        const regexFecha = /(\d{1,2})\s+de\s+([A-Za-zÁÉÍÓÚáéíóúÑñ]+)\s+de\s+(\d{4})/i;
+        const regexFecha = /(?:.*?,\s*)?(\d{1,2})(?:\s+de)?\s+([A-Za-zÁÉÍÓÚáéíóú]+)\s+de\s+(\d{4})/
 
         const fechaTexto = bloques.find(t => regexFecha.test(t));
+
+        let fecha;
+
+        fecha = convertirFechaWord(fechaTexto)
+
+        console.log(fecha)
 
         const indiceFecha =
           bloques.findIndex(t => t.includes("Córdoba"));
@@ -511,7 +517,7 @@ export default function FormCotizacion({
         if (
           indiceRef >= 0 &&
           indiceRef + 1 < bloques.length &&
-          !bloques[indiceRef + 1].startsWith("MONTO TOTAL")
+          !bloques[indiceRef + 1].startsWith("TOTAL")
         ) {
 
           descripcion =
@@ -520,13 +526,13 @@ export default function FormCotizacion({
         }
 
         const indiceMonto =
-          bloques.findIndex(t =>
-            t === "MONTO TOTAL"
+          bloques.findLastIndex(t =>
+            t.startsWith("U$D") || t.startsWith("$") 
           );
 
         const montoTexto =
           indiceMonto >= 0
-            ? bloques[indiceMonto + 1]
+            ? bloques[indiceMonto]
             : "";
 
         const matchMonto =
@@ -541,7 +547,7 @@ export default function FormCotizacion({
 
           moneda = matchMonto[1];
 
-          subtotal = matchMonto[2];
+          subtotal = matchMonto[2].replace(".", "").replace(",", ".")
 
         }
 
@@ -597,6 +603,8 @@ export default function FormCotizacion({
             formatearNumeroCotizacion(
               `${prefijo}-${numero}`
             ),
+
+          fecha,
 
           referencia,
 
