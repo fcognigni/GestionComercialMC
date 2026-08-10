@@ -39,7 +39,7 @@ namespace APIGesCom.Services
                 lista.Add(new ObraDTO
                 {
                     Id = Convert.ToInt64(reader["Id"]),
-                    Descripcion = reader["Descripcion"].ToString(),
+                    Referencia = reader["Referencia"].ToString(),
                     IdCliente = Convert.ToInt64(reader["IdCliente"]),
                     FechaAlta = reader["Fecha"] == DBNull.Value
                         ? null
@@ -72,7 +72,7 @@ namespace APIGesCom.Services
 
             cmd.CommandType = CommandType.StoredProcedure;
 
-            cmd.Parameters.AddWithValue("@Descripcion", obra.Descripcion);
+            cmd.Parameters.AddWithValue("@Referencia", obra.Referencia);
             cmd.Parameters.AddWithValue("@IdCliente", obra.IdCliente);
             cmd.Parameters.AddWithValue("@MontoPactado",
                 obra.MontoPactado);
@@ -110,8 +110,8 @@ namespace APIGesCom.Services
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Parameters.AddWithValue("@Id", obra.Id);
-            cmd.Parameters.AddWithValue("@Descripcion",
-                obra.Descripcion);
+            cmd.Parameters.AddWithValue("@Referencia",
+                obra.Referencia);
             cmd.Parameters.AddWithValue("@IdCliente",
                 obra.IdCliente);
             cmd.Parameters.AddWithValue("@FechaAlta",

@@ -3,7 +3,9 @@
     public class Obra
     {
         public long Id { get; set; }
-        public string Descripcion {  get; set; }
+        public string Referencia { get; set; }
+
+        public string? Descripcion { get; set; } = null;
         public long IdCliente { get; set; }
         public DateTime? FechaAlta { get; set; }
         public float MontoPactado { get; set; }

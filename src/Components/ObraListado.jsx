@@ -26,6 +26,9 @@ export default function ListObra({ refreshKey }) {
 
             const data = await response.json();
 
+            console.log("DATA:", JSON.stringify(data, null, 2));
+            console.log(data)
+
             setObras(data);
 
         } catch (err) {
@@ -74,7 +77,7 @@ export default function ListObra({ refreshKey }) {
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Descripción</th>
+                        <th>Referencia</th>
                         <th>Cliente</th>
                         <th>Monto</th>
                         <th>Estado Comercial</th>
@@ -102,11 +105,11 @@ export default function ListObra({ refreshKey }) {
                                 </td>
 
                                 <td>
-                                    {obra.descripcion}
+                                    {obra.referencia}
                                 </td>
 
                                 <td>
-                                    {obra.NombreCliente ?? "-"}
+                                    {obra.nombreCliente ?? "-"}
                                 </td>
 
                                 <td>
@@ -122,7 +125,7 @@ export default function ListObra({ refreshKey }) {
                                 </td>
 
                                 <td>
-                                    {obra.NombreCliente}
+                                    {obra.estadoComercial}
                                 </td>
 
                             </tr>

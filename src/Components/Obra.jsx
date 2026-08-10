@@ -14,7 +14,7 @@ export default function FormObra({ onSuccess }) {
         cotizada: "",
         idCliente: "",
         idCotizacion: "",
-        descripcion: "",
+        referencia: "",
         montoPactado: "",
         idSolicitante: null
     });
@@ -134,15 +134,15 @@ export default function FormObra({ onSuccess }) {
 
         if (
             formData.cotizada === "no" &&
-            !formData.descripcion.trim()
+            !formData.referencia.trim()
         ) {
-            nuevosErrores.descripcion =
+            nuevosErrores.referencia =
                 "* La descripción es obligatoria";
         }
 
-        if (formData.descripcion.length > 300) {
-            nuevosErrores.descripcion =
-                "* Máximo 300 caracteres";
+        if (formData.referencia.length > 100) {
+            nuevosErrores.referencia =
+                "* Máximo 100 caracteres";
         }
 
         if (
@@ -165,7 +165,7 @@ export default function FormObra({ onSuccess }) {
             cotizada: "",
             idCliente: "",
             idCotizacion: "",
-            descripcion: "",
+            referencia: "",
             montoPactado: "",
             idSolicitante: ""
         });
@@ -207,9 +207,9 @@ export default function FormObra({ onSuccess }) {
 
         try {
             const body = {
-                descripcion: formData.cotizada === "si"
+                referencia: formData.cotizada === "si"
                     ? cotizacionSeleccionada?.referencia
-                    : formData.descripcion,
+                    : formData.referencia,
                 idCliente:
                     formData.idCliente,
                 montoPactado:
