@@ -15,14 +15,15 @@ export default function HistorialEstadoComercial({
             return;
         }
 
-        cargarHistorial();
+        cargarHistorial(obraSeleccionada);
     }, [obraSeleccionada, refreshKey]);
 
-    const cargarHistorial = async () => {
+    const cargarHistorial = async ({idObra}) => {
         try {
             setLoading(true);
             setError("");
 
+            console.log(idObra)
             const response = await fetch(
                 `https://localhost:7208/api/ObraEstadoComercial/${idObra}`
             );

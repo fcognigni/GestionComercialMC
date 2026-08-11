@@ -133,6 +133,10 @@ export default function WorkflowEstadoComercial({
     };
 
     const obrasCliente = useMemo(() => {
+        oFiltradas = obras.filter(o =>
+            String(o.idCliente) === String(formData.idCliente)
+        )
+        console.log(oFiltradas);
         return obras.filter(o =>
             String(o.idCliente) === String(formData.idCliente)
         );

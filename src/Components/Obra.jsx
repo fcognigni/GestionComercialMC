@@ -384,7 +384,7 @@ export default function FormObra({ onSuccess }) {
                                         key={c.id}
                                         value={c.id}
                                     >
-                                        #{c.numero} - {c.referencia}
+                                        {c.prefijo}-{c.numero} - {c.referencia}
                                     </option>
 
                                 ))}
@@ -406,19 +406,19 @@ export default function FormObra({ onSuccess }) {
                         <div className="form-group col-span-2">
 
                             <label>
-                                Descripción
+                                Referencia de Obra Iniciada
                             </label>
 
                             <input
                                 type="text"
-                                name="descripcion"
-                                value={formData.descripcion}
+                                name="referencia"
+                                value={formData.referencia}
                                 onChange={handleChange}
                             />
 
-                            {errors.descripcion &&
+                            {errors.referencia &&
                                 <span className="error-msg">
-                                    {errors.descripcion}
+                                    {errors.referencia}
                                 </span>
                             }
 
