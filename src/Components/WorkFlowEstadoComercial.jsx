@@ -103,6 +103,10 @@ export default function WorkflowEstadoComercial({
     const handleChange = (e) => {
         const { name, value } = e.target;
 
+        console.log("HANDLE CHANGE:");
+        console.log("name:", name);
+        console.log("value:", value);
+        console.log("tipo:", typeof value);
         setError("");
 
         setFormData(prev => {
@@ -133,10 +137,6 @@ export default function WorkflowEstadoComercial({
     };
 
     const obrasCliente = useMemo(() => {
-        oFiltradas = obras.filter(o =>
-            String(o.idCliente) === String(formData.idCliente)
-        )
-        console.log(oFiltradas);
         return obras.filter(o =>
             String(o.idCliente) === String(formData.idCliente)
         );
@@ -344,7 +344,7 @@ export default function WorkflowEstadoComercial({
                             <option value="">Seleccione una obra...</option>
                             {obrasCliente.map(obra => (
                                 <option key={obra.id} value={obra.id}>
-                                    {obra.descripcion}
+                                    {obra.referencia}
                                 </option>
                             ))}
                         </select>

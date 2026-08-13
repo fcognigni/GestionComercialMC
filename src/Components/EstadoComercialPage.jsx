@@ -15,6 +15,8 @@ export default function EstadoComercialPage() {
         setRefreshKey(prev => prev + 1);
     };
 
+    console.log("OBRA SELECCIONADA EN PADRE:", obraSeleccionada);
+
     return (
         <Cardpanel
             Form={() => (
