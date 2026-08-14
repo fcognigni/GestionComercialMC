@@ -53,11 +53,11 @@ namespace APIGesCom.Controllers
                 [FromBody]
                 ObraEstadoComercial estado)
         {
-            bool resultado =
+            int resultado =
                 await _service
                     .InsertarAsync(estado);
 
-            if (!resultado)
+            if (resultado == 0)
                 return BadRequest();
 
             return Ok();

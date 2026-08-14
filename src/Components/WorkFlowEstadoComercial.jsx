@@ -91,6 +91,7 @@ export default function WorkflowEstadoComercial({
             }
 
             const data = await response.json();
+            console.log("DATA:", JSON.stringify(data, null, 2));
             setHistorialObra(data || []);
         }
         catch (err) {
@@ -143,7 +144,7 @@ export default function WorkflowEstadoComercial({
     }, [obras, formData.idCliente]);
 
     const ultimoEstado = historialObra.length > 0
-        ? historialObra[0]
+        ? historialObra[historialObra.length - 1]
         : null;
 
     const estadoActual = useMemo(() => {
@@ -154,14 +155,13 @@ export default function WorkflowEstadoComercial({
         ) || null;
     }, [estados, ultimoEstado]);
 
+    /* .map(x => Number(x.trim())) */
     const sucesoresIds = useMemo(() => {
-        if (!estadoActual?.sucesores) return [];
+        if (!ultimoEstado?.sucesores) return [];
 
-        return estadoActual.sucesores
-            .split(",")
-            .map(x => Number(x.trim()))
+        return ultimoEstado.sucesoresInt
             .filter(n => !Number.isNaN(n));
-    }, [estadoActual]);
+    }, [ultimoEstado]);
 
     const sucesores = useMemo(() => {
         return estados.filter(e =>
@@ -193,10 +193,7 @@ export default function WorkflowEstadoComercial({
             nuevosErrores.idEstadoComercial = "* Debe seleccionar un nuevo estado comercial";
         }
 
-        if (!formData.observaciones.trim()) {
-            nuevosErrores.observaciones = "* Las observaciones son obligatorias";
-        }
-        else if (formData.observaciones.length > 500) {
+        if (formData.observaciones.length > 500) {
             nuevosErrores.observaciones = "* Máximo 500 caracteres";
         }
 
@@ -241,6 +238,8 @@ export default function WorkflowEstadoComercial({
                 idEstadoComercial: Number(formData.idEstadoComercial),
                 observaciones: formData.observaciones.trim()
             };
+
+            console.log(body)
 
             const response = await fetch(
                 "https://localhost:7208/api/ObraEstadoComercial",
@@ -375,9 +374,10 @@ export default function WorkflowEstadoComercial({
                                     : "Seleccione un estado..."}
                             </option>
 
-                            {sucesores.map(estado => (
+                            {sucesores.map(estado =>
+                            (
                                 <option key={estado.id} value={estado.id}>
-                                    {estado.Nombre || estado.nombreEstadoComercial}
+                                    {estado.nombre}
                                 </option>
                             ))}
                         </select>

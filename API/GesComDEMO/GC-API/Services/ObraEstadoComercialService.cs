@@ -120,7 +120,7 @@ namespace APIGesCom.Services
             return lista;
         }
 
-        public async Task<bool>
+        public async Task<int>
             InsertarAsync(
                 ObraEstadoComercial estado)
         {
@@ -153,7 +153,7 @@ namespace APIGesCom.Services
 
             await conn.OpenAsync();
 
-            return await cmd.ExecuteNonQueryAsync() > 0;
+            return await cmd.ExecuteNonQueryAsync();
         }
 
         public async Task<bool>

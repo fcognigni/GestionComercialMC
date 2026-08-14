@@ -9,6 +9,13 @@ export default function HistorialEstadoComercial({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    console.log(
+        "HISTORIAL - obraSeleccionada:",
+        obraSeleccionada,
+        "tipo:",
+        typeof obraSeleccionada
+    );
+
     useEffect(() => {
         if (!obraSeleccionada) {
             setHistorial([]);
@@ -18,12 +25,11 @@ export default function HistorialEstadoComercial({
         cargarHistorial(obraSeleccionada);
     }, [obraSeleccionada, refreshKey]);
 
-    const cargarHistorial = async ({idObra}) => {
+    const cargarHistorial = async ( idObra ) => {
         try {
             setLoading(true);
             setError("");
 
-            console.log(idObra)
             const response = await fetch(
                 `https://localhost:7208/api/ObraEstadoComercial/${idObra}`
             );

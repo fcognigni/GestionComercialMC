@@ -15,7 +15,7 @@ namespace APIGesCom.Services
         Task<IEnumerable<ObraEstadoComercial>>
             ListarPorEstadoComercialAsync(long idEstado);
 
-        Task<bool>
+        Task<int>
             InsertarAsync(ObraEstadoComercial estado);
 
         Task<bool>
