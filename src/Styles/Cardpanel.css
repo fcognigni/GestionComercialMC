@@ -1,41 +1,44 @@
 .main-content {
-  flex: 1;
-  background-color: var(--lila-claro);
+    flex: 1;
+    background-color: var(--lila-claro);
 }
 
 /* CARDS */
 .content-card {
-  min-height: 300px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(6px);
-  padding: 25px;
-  /* Borde inicial sutil para que no "salte" al hacer hover */
-  border: 1px solid rgba(74, 63, 99, 0.1); 
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  transition: 0.25s;
+    min-height: 300px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(6px);
+    padding: 25px;
+    /* Borde inicial sutil para que no "salte" al hacer hover */
+    border: 1px solid rgba(74, 63, 99, 0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transition: 0.25s;
 }
 
 .content-card table {
-    font-size: 0.85rem; /* Ajusta este valor: 0.85rem es un poco más chico que el estándar */
+    font-size: 0.85rem;
+    /* Ajusta este valor: 0.85rem es un poco más chico que el estándar */
 }
 
 /* Si también querés que los encabezados (th) se vean un poco más finos o chicos */
 .content-card th {
     font-size: 0.9rem;
-    color: #6c757d; /* Un gris un poco más suave para que no compita tanto con los datos */
+    color: #6c757d;
+    /* Un gris un poco más suave para que no compita tanto con los datos */
 }
 
 .content-card:hover {
-  /* Sin transform (no se mueve). Ahora intensifica la sombra y el borde */
-  border-color: rgba(74, 63, 99, 0.3);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+    /* Sin transform (no se mueve). Ahora intensifica la sombra y el borde */
+    border-color: rgba(74, 63, 99, 0.3);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
 }
 
 .content-card h3 {
-  color: #4a3f63;
-  font-weight: 700;
-  font-size: 1.15rem; /* Fuente un poco más pequeña (ajustá este valor si lo querés más chico aún) */
+    color: #4a3f63;
+    font-weight: 700;
+    font-size: 1.15rem;
+    /* Fuente un poco más pequeña (ajustá este valor si lo querés más chico aún) */
 }
 
 .estado-actual {
@@ -91,11 +94,54 @@
     opacity: 0.98;
 }
 
-.estado-1 { background: #dc3545; } /* Emergencia */
-.estado-2 { background: #0d6efd; } /* Cotizada */
-.estado-3 { background: #fd7e14; } /* Presupuestada */
-.estado-4 { background: #198754; } /* En ejecución */
-.estado-5 { background: #6f42c1; } /* Finalizada */
+.filtros {
+    display: flex;
+    flex-direction: column;
+    color: #4a3f63;
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(74, 63, 99, 0.2);
+    background: rgba(255, 255, 255, 0.6);
+    color: #333;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.filtros select:focus {
+    border-color: #4a3f63;
+    box-shadow: 0 0 0 3px rgba(74, 63, 99, 0.15);
+    background: #fff;
+}
+
+.estado-1 {
+    background: #dc3545;
+}
+
+/* Emergencia */
+.estado-2 {
+    background: #0d6efd;
+}
+
+/* Cotizada */
+.estado-3 {
+    background: #fd7e14;
+}
+
+/* Presupuestada */
+.estado-4 {
+    background: #198754;
+}
+
+/* En ejecución */
+.estado-5 {
+    background: #6f42c1;
+}
+
+/* Finalizada */
 
 .historial-container {
     margin-top: 20px;

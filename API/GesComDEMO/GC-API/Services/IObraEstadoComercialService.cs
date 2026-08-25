@@ -6,14 +6,11 @@ namespace APIGesCom.Services
 {
     public interface IObraEstadoComercialService
     {
-        Task<IEnumerable<ObraEstadoComercialDTO>>
-            ListarTodosAsync();
-
-        Task<IEnumerable<ObraEstadoComercialDTO>>
-            ListarPorObraAsync(long idObra);
-
-        Task<IEnumerable<ObraEstadoComercial>>
-            ListarPorEstadoComercialAsync(long idEstado);
+        Task<
+        ResultadoPaginado<ObraEstadoComercialDTO>
+        > ListarAsync(
+            ObraEstadoComercialFiltro filtro
+            );
 
         Task<int>
             InsertarAsync(ObraEstadoComercial estado);

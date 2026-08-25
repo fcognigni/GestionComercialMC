@@ -193,13 +193,19 @@ CREATE TABLE AppData.Cliente (
 
     Calle NVARCHAR(100),
 
-    Numero NVARCHAR(10),
+    Numero NVARCHAR(12),
 
     Activo BIT DEFAULT 1
 );
 GO
 
-insert into AppData.Cliente (Nombre, CUIT, Localidad) values ('DENSO MANUFACTURING SA', '30685014420', 'Córdoba')
+insert into AppData.Cliente (Nombre, CUIT, Localidad, Calle, Numero) 
+values ('DENSO MANUFACTURING SA', '30685014420', 'Córdoba', 'Av Las Malvinas', 'Km 4,2'),
+('REFINERÍA DEL CENTRO', '33501348479', 'Córdoba', 'Camino a Capilla de los Remedios', '7373'),
+('CORDEIRO Y CIA SRL', '30611689507', 'Córdoba', 'Calle Pública', '4471'),
+('SHOPS GROUP SAS', '30716059460', 'Córdoba', 'Gregorio Gavier', '2091'),
+('MAGNETI MARELLI CONJUNTOS DE ESCAPE SA', '30707570144', 'Córdoba', 'Av Velez Sarsfield', 'Km 4,5')
+GO
 
 ---------------------------------------------------
 -- CHECKS CLIENTE
@@ -225,10 +231,10 @@ GO
 --CHECK (AppData.fnSoloTexto(Calle) = 1);
 --GO
 
-ALTER TABLE AppData.Cliente
-ADD CONSTRAINT CHK_Cliente_Numero
-CHECK (AppData.fnSoloNumeros(Numero) = 1);
-GO
+--ALTER TABLE AppData.Cliente
+--ADD CONSTRAINT CHK_Cliente_Numero
+--CHECK (AppData.fnSoloNumeros(Numero) = 1);
+--GO
 
 ---------------------------------------------------
 -- SOLICITANTE
@@ -260,7 +266,8 @@ GO
 
 CREATE TABLE AppData.EstadoComercial (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Nombre NVARCHAR(20) NOT NULL
+    Nombre NVARCHAR(20) NOT NULL,
+    Sucesores NVARCHAR(50) 
 );
 GO
 
@@ -273,18 +280,13 @@ VALUES
 ('Cobrada');
 GO
 
--- 1. Agregamos la columna como VARCHAR (puedes usar JSON si tu motor lo soporta)
-ALTER TABLE AppData.EstadoComercial 
-ADD sucesores NVARCHAR(50) NULL;
-go
-
 
 -- 2. Actualizamos los datos con tu lógica
-UPDATE AppData.EstadoComercial SET sucesores = '4,5' WHERE Id = 1;
-UPDATE AppData.EstadoComercial SET sucesores = '3,4,5' WHERE Id = 2;
-UPDATE AppData.EstadoComercial SET sucesores = '4,5' WHERE Id = 3;
-UPDATE AppData.EstadoComercial SET sucesores = '5' WHERE Id = 4;
-UPDATE AppData.EstadoComercial SET sucesores = NULL WHERE Id = 5; -- O vacío ''
+UPDATE AppData.EstadoComercial SET Sucesores = '4,5' WHERE Id = 1;
+UPDATE AppData.EstadoComercial SET Sucesores = '3,4,5' WHERE Id = 2;
+UPDATE AppData.EstadoComercial SET Sucesores = '4,5' WHERE Id = 3;
+UPDATE AppData.EstadoComercial SET Sucesores = '5' WHERE Id = 4;
+UPDATE AppData.EstadoComercial SET Sucesores = NULL WHERE Id = 5; -- O vacío ''
 
 go
 
@@ -444,7 +446,7 @@ BEGIN
            -- OR AppData.fnCUITValido(CUIT) = 0
            -- OR AppData.fnSoloTexto(Localidad) = 0
            -- OR AppData.fnSoloTexto(Calle) = 0
-            OR AppData.fnSoloNumeros(Numero) = 0
+           -- OR AppData.fnSoloNumeros(Numero) = 0
     )
     BEGIN
         RAISERROR('Formato inválido',16,1);
@@ -954,22 +956,102 @@ END
 GO
 
 
-CREATE PROCEDURE AppData.spListarObraEstadoComercial
+CREATE PROCEDURE
+    AppData.spListarObraEstadoComercial
+(
+    @IdObra BIGINT = NULL,
+    @IdEstadoComercial INT = NULL,
+
+    @FechaDesde DATETIME = NULL,
+    @FechaHasta DATETIME = NULL,
+
+    @Page INT = 1,
+    @PageSize INT = 50
+)
 AS
 BEGIN
 
-SET NOCOUNT ON
+    SET NOCOUNT ON;
 
-SELECT OEC.Id AS Id,
-        O.Id AS IdObra,
-        EC.Id AS IdEstadoComercial,
-        EC.Nombre AS NombreEstadoComercial,
-        EC.sucesores AS Sucesores,
-        OEC.Fecha AS Fecha,
-        OEC.Observaciones AS Observaciones
-    FROM AppData.ObraEstadoComercial as OEC
-    INNER JOIN AppData.Obra as O ON OEC.IdObra = O.Id
-    INNER JOIN AppData.EstadoComercial AS EC ON OEC.IdEstadoComercial = EC.Id
+    SELECT
+        OEC.Id,
+        OEC.IdObra,
+        OEC.IdEstadoComercial,
+        OEC.Fecha,
+        OEC.Observaciones,
+        EC.Sucesores,
+        EC.Nombre AS NombreEstadoComercial
+
+    FROM AppData.ObraEstadoComercial OEC
+
+    INNER JOIN AppData.EstadoComercial EC
+        ON EC.Id = OEC.IdEstadoComercial
+
+    WHERE
+        (
+            @IdObra IS NULL
+            OR OEC.IdObra = @IdObra
+        )
+
+        AND
+        (
+            @IdEstadoComercial IS NULL
+            OR OEC.IdEstadoComercial =
+               @IdEstadoComercial
+        )
+
+        AND
+        (
+            @FechaDesde IS NULL
+            OR OEC.Fecha >= @FechaDesde
+        )
+
+        AND
+        (
+            @FechaHasta IS NULL
+            OR OEC.Fecha <= @FechaHasta
+        )
+
+    ORDER BY
+        OEC.Fecha DESC,
+        OEC.Id DESC
+
+    OFFSET
+        (@Page - 1) * @PageSize
+        ROWS
+
+    FETCH NEXT
+        @PageSize ROWS ONLY;
+
+
+    SELECT
+        COUNT(*)
+    FROM AppData.ObraEstadoComercial OEC
+
+    WHERE
+        (
+            @IdObra IS NULL
+            OR OEC.IdObra = @IdObra
+        )
+
+        AND
+        (
+            @IdEstadoComercial IS NULL
+            OR OEC.IdEstadoComercial =
+               @IdEstadoComercial
+        )
+
+        AND
+        (
+            @FechaDesde IS NULL
+            OR OEC.Fecha >= @FechaDesde
+        )
+
+        AND
+        (
+            @FechaHasta IS NULL
+            OR OEC.Fecha <= @FechaHasta
+        );
 
 END
 GO
@@ -1000,6 +1082,8 @@ WHERE OEC.IdObra = @Id
 
 end
 go
+
+
 
 
 CREATE PROCEDURE AppData.spListarObraEstadoComercialPorEstadoComercial

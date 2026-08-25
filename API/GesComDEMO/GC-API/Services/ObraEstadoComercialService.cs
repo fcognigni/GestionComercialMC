@@ -16,10 +16,14 @@ namespace APIGesCom.Services
             _config = config;
         }
 
-        public async Task<IEnumerable<ObraEstadoComercialDTO>>
-            ListarTodosAsync()
+
+        public async Task<ResultadoPaginado<ObraEstadoComercialDTO>> 
+            ListarAsync(
+            ObraEstadoComercialFiltro filtro)
         {
             List<ObraEstadoComercialDTO> lista = new();
+
+            int totalRegistros = 0;
 
             string connString =
                 _config.GetConnectionString("GesComDemo");
@@ -35,89 +39,79 @@ namespace APIGesCom.Services
             cmd.CommandType =
                 CommandType.StoredProcedure;
 
-            await conn.OpenAsync();
-
-            await using SqlDataReader reader =
-                await cmd.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                lista.Add(Mapear(reader));
-            }
-
-            return lista;
-        }
-
-        public async Task<IEnumerable<ObraEstadoComercialDTO>>
-            ListarPorObraAsync(long idObra)
-        {
-            List<ObraEstadoComercialDTO> lista = new();
-
-            string connString =
-                _config.GetConnectionString("GesComDemo");
-
-            await using SqlConnection conn =
-                new SqlConnection(connString);
-
-            await using SqlCommand cmd =
-                new SqlCommand(
-                    "AppData.spListarObraEstadoComercialPorObra",
-                    conn);
-
-            cmd.CommandType =
-                CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue(
+                "@IdObra",
+                (object?)filtro.IdObra ?? DBNull.Value
+            );
 
             cmd.Parameters.AddWithValue(
-                "@Id",
-                idObra);
-
-            await conn.OpenAsync();
-
-            await using SqlDataReader reader =
-                await cmd.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                lista.Add(Mapear(reader));
-            }
-
-            return lista;
-        }
-
-        public async Task<IEnumerable<ObraEstadoComercial>>
-            ListarPorEstadoComercialAsync(long idEstado)
-        {
-            List<ObraEstadoComercial> lista = new();
-
-            string connString =
-                _config.GetConnectionString("GesComDemo");
-
-            await using SqlConnection conn =
-                new SqlConnection(connString);
-
-            await using SqlCommand cmd =
-                new SqlCommand(
-                    "AppData.spListarObraEstadoComercialPorEstadoComercial",
-                    conn);
-
-            cmd.CommandType =
-                CommandType.StoredProcedure;
+                "@IdEstadoComercial",
+                (object?)filtro.IdEstadoComercial
+                ?? DBNull.Value
+            );
 
             cmd.Parameters.AddWithValue(
-                "@Id",
-                idEstado);
+                "@FechaDesde",
+                (object?)filtro.FechaDesde
+                ?? DBNull.Value
+            );
+
+            cmd.Parameters.AddWithValue(
+                "@FechaHasta",
+                (object?)filtro.FechaHasta
+                ?? DBNull.Value
+            );
+
+            cmd.Parameters.AddWithValue(
+                "@Page",
+                filtro.Page
+            );
+
+            cmd.Parameters.AddWithValue(
+                "@PageSize",
+                filtro.PageSize
+            );
 
             await conn.OpenAsync();
 
             await using SqlDataReader reader =
                 await cmd.ExecuteReaderAsync();
 
+
+            // Primer resultado:
+            // los registros de la página
+
             while (await reader.ReadAsync())
             {
                 lista.Add(Mapear(reader));
             }
 
-            return lista;
+
+            // Segundo resultado:
+            // total de registros
+
+            if (await reader.NextResultAsync())
+            {
+                if (await reader.ReadAsync())
+                {
+                    totalRegistros =
+                        Convert.ToInt32(reader[0]);
+                }
+            }
+
+
+            return new ResultadoPaginado<
+                ObraEstadoComercialDTO>
+            {
+                Items = lista,
+
+                TotalRegistros =
+                    totalRegistros,
+
+                Page = filtro.Page,
+
+                PageSize = filtro.PageSize
+            };
         }
 
         public async Task<int>
