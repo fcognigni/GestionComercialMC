@@ -643,18 +643,19 @@ export default function FormCotizacion({
           </div>
 
           {/* Número */}
-          <div className="form-group">
+          <div className="form-group" col-span-2>
             <label htmlFor="numero">Número de Cotización</label>
             <input type="text" id="numero"
               value={formData.numero}
               onChange={handleNumeroChange}
               onBlur={handleNumeroBlur}
-              name="numero" className={errors.numero ? 'input-error' : ''} />
+              name="numero"
+              className={errors.fecha ? 'input-error' : ''}  />
             {errors.numero && <span className="error-msg">{errors.numero}</span>}
           </div>
 
           {/* Fecha */}
-          <div className="form-group">
+          <div className="form-group" col-span-2>
             <label htmlFor="fecha">Fecha y Hora</label>
             <input type="date"
               id="fecha"
@@ -666,7 +667,7 @@ export default function FormCotizacion({
           </div>
 
           {/* IdCliente (Simulado con un select) */}
-          <div className="form-group">
+          <div className="form-group" col-span-2>
             <label htmlFor="idCliente">Cliente</label>
             <select
               name="idCliente"
@@ -709,7 +710,7 @@ export default function FormCotizacion({
           </div>
 
           {/* Monto */}
-          <div className="form-group">
+          <div className="form-group" col-span-2>
             <label htmlFor="monto">Monto ($)</label>
             <input type="number" step="0.01" id="monto"
               value={formData.monto}

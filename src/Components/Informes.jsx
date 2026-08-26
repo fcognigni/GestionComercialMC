@@ -10,7 +10,7 @@ export default function Informes() {
     const [loading, setLoading] = useState(false);
 
     const [filtros, setFiltros] = useState({
-        idObra: null,
+        idCliente: null,
         idEstadoComercial: null,
         fechaDesde: null,
         fechaHasta: null
@@ -25,7 +25,7 @@ export default function Informes() {
         useState(1);
 
     async function cargarEstados({
-        idObra,
+        idCliente,
         idEstadoComercial,
         page = 1,
         pageSize = 50
@@ -77,7 +77,9 @@ export default function Informes() {
         );
     }
 
-    function actualizarFiltro(campo, valor) {
+    const actualizarFiltro = (e) => {
+
+        const { name, value } = e.target;
 
         setFiltros(prev => ({
             ...prev,
@@ -97,10 +99,6 @@ export default function Informes() {
         filtros
     ]);
 
-    const handleSeleccion = (estado) => {
-        setEstadoSeleccionado(estado)
-    }
-
 
     return (
         <main className="main-content container-fluid py-4">
@@ -117,30 +115,43 @@ export default function Informes() {
                 </div>
             )}
 
-            <div className="filtros">
+            <div className="contenedor-filtros">
+            <div className="filtro">
                 <label htmlFor="idEstados">Estado comercial</label>
                 <select
-                    name="idEstados"
-                    onChange={handleSeleccion}>
+                    name="idEstadoComercial"
+                    value={filtros.idEstadoComercial}
+                    onChange={actualizarFiltro}>
 
                     <option value="">
                         "Seleccione estado comercial"
                     </option>
 
                     {
-                        estadosPendientes.map(
-                            ep => (
+                        estados.map(
+                            e => (
                                 <option
-                                    key={ep.id}
-                                    value={ep.id}
+                                    key={e.id}
+                                    value={e.id}
                                 >
-                                    {ep.nombre}
+                                    {e.nombre}
                                 </option>
                             )
                         )
                     }
 
                 </select>
+            </div>
+            <div className="filtro">
+                    <label htmlFor="idCliente">Cliente</label>
+                    <select 
+                    name="idCliente"
+                    value={filtros.idCliente}
+                    onChange={actualizarFiltro}>
+                    
+
+                    </select>
+            </div>
             </div>
 
             <div className="content-card">

@@ -20,7 +20,7 @@ const CardpanelCotizacion = ({ Form, Listado }) => {
 
             <div className="row g-4">
 
-                <div className="col-12 col-lg-6">
+                <div className="col-12 col-lg-7">
 
                     <div className="content-card">
 
@@ -35,7 +35,7 @@ const CardpanelCotizacion = ({ Form, Listado }) => {
 
                 </div>
 
-                <div className="col-12 col-lg-6">
+                <div className="col-12 col-lg-5">
 
                     <div className="content-card">
 
