@@ -81,9 +81,14 @@ export default function WorkflowEstadoComercial({
     };
 
     const cargarHistorialObra = async (idObra) => {
+
+        const params = new URLSearchParams();
+
+        params.append("idObra", idObra)
+
         try {
             const response = await fetch(
-                `https://localhost:7208/api/ObraEstadoComercial/${idObra}`
+                `https://localhost:7208/api/ObraEstadoComercial?${params}`
             );
 
             if (!response.ok) {
@@ -91,8 +96,8 @@ export default function WorkflowEstadoComercial({
             }
 
             const data = await response.json();
-            console.log("DATA:", JSON.stringify(data, null, 2));
-            setHistorialObra(data || []);
+            console.log(data.items);
+            setHistorialObra(data.items || []);
         }
         catch (err) {
             console.error(err);
@@ -144,8 +149,9 @@ export default function WorkflowEstadoComercial({
     }, [obras, formData.idCliente]);
 
     const ultimoEstado = historialObra.length > 0
-        ? historialObra[historialObra.length - 1]
+        ? historialObra[0]
         : null;
+
 
     const estadoActual = useMemo(() => {
         if (!ultimoEstado) return null;

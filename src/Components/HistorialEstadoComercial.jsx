@@ -26,12 +26,17 @@ export default function HistorialEstadoComercial({
     }, [obraSeleccionada, refreshKey]);
 
     const cargarHistorial = async ( idObra ) => {
+
+        const params = new URLSearchParams();
+
+        params.append("idObra", idObra)
+
         try {
             setLoading(true);
             setError("");
 
             const response = await fetch(
-                `https://localhost:7208/api/ObraEstadoComercial/${idObra}`
+                `https://localhost:7208/api/ObraEstadoComercial?${idObra}`
             );
 
             if (!response.ok) {
@@ -39,7 +44,8 @@ export default function HistorialEstadoComercial({
             }
 
             const data = await response.json();
-            setHistorial(data || []);
+            console.log("DATA", JSON.stringify(data, null, 2))
+            setHistorial(data.items || []);
         }
         catch (err) {
             console.error(err);

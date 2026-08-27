@@ -3,17 +3,18 @@ import '../Styles/Cardpanel.css'
 
 export default function Informes() {
 
-    const API_URL = 'https://localhost:7208/'
+    const API_URL = "https://localhost:7208"
 
     const [estadosPendientes, setEstadosPendientes] = useState([])
-    const [estadoSeleccionado, setEstadoSeleccionado] = useState(null)
+    const [idObra, setIdObra] = useState("")
     const [loading, setLoading] = useState(false);
+    const [clientes, setClientes] = useState([]);
 
     const [filtros, setFiltros] = useState({
-        idCliente: null,
-        idEstadoComercial: null,
-        fechaDesde: null,
-        fechaHasta: null
+        idCliente: "",
+        idEstadoComercial: "",
+        fechaDesde: "",
+        fechaHasta: ""
     });
 
     const [estados, setEstados] = useState([]);
@@ -24,6 +25,46 @@ export default function Informes() {
     const [pagina, setPagina] =
         useState(1);
 
+    const cargarClientes = async () => {
+
+        try {
+
+            setLoading(true);
+
+            const response =
+                await fetch(
+                    "https://localhost:7208/api/Cliente"
+                );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Error al obtener clientes"
+                );
+            }
+
+            const data =
+                await response.json();
+
+            console.log(data)
+            setClientes(data);
+
+        } catch (err) {
+
+            setError(err.message);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+    };
+
+    useEffect(() => {
+
+        cargarClientes();
+
+    }, []);
+
     async function cargarEstados({
         idCliente,
         idEstadoComercial,
@@ -31,50 +72,60 @@ export default function Informes() {
         pageSize = 50
     } = {}) {
 
-        const params = new URLSearchParams();
+            const params = new URLSearchParams();
 
-        if (idObra) {
-            params.append("idObra", idObra);
-        }
+            if (idObra) {
+                params.append("idObra", idObra);
+            }
 
-        if (idEstadoComercial) {
-            params.append(
-                "idEstadoComercial",
-                idEstadoComercial
+            if (idEstadoComercial) {
+                params.append(
+                    "idEstadoComercial",
+                    idEstadoComercial
+                );
+            }
+
+            params.append("page", page);
+            params.append("pageSize", pageSize);
+
+            const response = await fetch(
+                `${API_URL}/api/ObraEstadoComercial?${params}`
             );
-        }
 
-        params.append("page", page);
-        params.append("pageSize", pageSize);
+            if (!response.ok) {
+                throw new Error(
+                    "Error al cargar los estados comerciales"
+                );
+            }
 
-        const response = await fetch(
-            `${API_URL}/api/ObraEstadoComercial?${params}`
-        );
+            return await response.json();
 
-        if (!response.ok) {
-            throw new Error(
-                "Error al cargar los estados comerciales"
-            );
-        }
-
-        return await response.json();
     }
 
 
     async function cargarDatos() {
 
-        const data =
-            await cargarEstados({
-                ...filtros,
-                page: pagina,
-                pageSize: 50
-            });
+        try {
 
-        setEstados(data.items);
+            const data =
+                await cargarEstados({
+                    ...filtros,
+                    page: pagina,
+                    pageSize: 50
+                });
 
-        setTotalRegistros(
-            data.totalRegistros
-        );
+            setEstados(data.items);
+
+            console.log(estados)
+
+            setTotalRegistros(
+                data.totalRegistros
+            );
+        }
+
+        catch (err) {
+            console.log(err)
+        }
     }
 
     const actualizarFiltro = (e) => {
@@ -116,55 +167,82 @@ export default function Informes() {
             )}
 
             <div className="contenedor-filtros">
-            <div className="filtro">
-                <label htmlFor="idEstados">Estado comercial</label>
-                <select
-                    name="idEstadoComercial"
-                    value={filtros.idEstadoComercial}
-                    onChange={actualizarFiltro}>
+                <div className="filtro">
+                    <label htmlFor="idEstados">Estado comercial</label>
+                    <select
+                        name="idEstadoComercial"
+                        value={filtros.idEstadoComercial}
+                        onChange={actualizarFiltro}>
 
-                    <option value="">
-                        "Seleccione estado comercial"
-                    </option>
+                        <option value="">
+                            "Seleccione estado comercial"
+                        </option>
 
-                    {
-                        estados.map(
-                            e => (
-                                <option
-                                    key={e.id}
-                                    value={e.id}
-                                >
-                                    {e.nombre}
-                                </option>
+                        {
+                            estados.map(
+                                e => (
+                                    <option
+                                        key={e.id}
+                                        value={e.id}
+                                    >
+                                        {e.nombre}
+                                    </option>
+                                )
                             )
-                        )
-                    }
-
-                </select>
-            </div>
-            <div className="filtro">
-                    <label htmlFor="idCliente">Cliente</label>
-                    <select 
-                    name="idCliente"
-                    value={filtros.idCliente}
-                    onChange={actualizarFiltro}>
-                    
+                        }
 
                     </select>
-            </div>
+                </div>
+                <div className="filtro">
+                    <label htmlFor="idCliente">Cliente</label>
+                    <select
+                        name="idCliente"
+                        value={filtros.idCliente}
+                        onChange={actualizarFiltro}>
+
+
+                    </select>
+                </div>
             </div>
 
             <div className="content-card">
-                <h3>Obras sin cotizacion</h3>
+                <h3>Historial estados comerciales</h3>
                 <table>
                     <thead>
                         <tr>
-                        <th>Referencia</th>
-                        <th>Cliente</th>
-                        <th>Fecha Inicio</th>
-                        <th>Observaciones</th>
+                            <th>Referencia</th>
+                            <th>Cliente</th>
+                            <th>Estado</th>
+                            <th>Observaciones</th>
                         </tr>
                     </thead>
+
+                        <tbody>
+                            
+                            {estados.map (e =>
+
+                                <tr>
+
+                                    <td>
+                                        {e.idObra}
+                                    </td>
+
+                                    <td>
+                                        {e.idCliente}
+                                    </td>
+
+                                    <td>
+                                        {e.nombreEstadoComercial}
+                                    </td>
+
+                                </tr>
+                                         
+                            )
+                            }
+
+                        </tbody>
+
+
                 </table>
             </div>
         </main>
