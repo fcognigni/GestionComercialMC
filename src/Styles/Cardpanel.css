@@ -1,19 +1,59 @@
 .main-content {
-    flex: 1;
-    background-color: var(--lila-claro);
+  flex: 1;
+  background-color: var(--violeta-medio);
 }
 
 /* CARDS */
 .content-card {
-    min-height: 300px;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(6px);
-    padding: 25px;
-    /* Borde inicial sutil para que no "salte" al hacer hover */
-    border: 1px solid rgba(74, 63, 99, 0.1);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    transition: 0.25s;
+  min-height: 300px;
+  border-radius: 20px;
+  background: var(--blanco-card);
+  backdrop-filter: blur(8px);
+  padding: 22px;
+  border: 1px solid rgba(107, 70, 193, 0.12);
+  box-shadow: 0 4px 20px rgba(60, 42, 96, 0.05);
+  transition: all 0.25s ease;
+}
+
+.content-card:hover {
+  border-color: rgba(107, 70, 193, 0.25);
+  box-shadow: 0 8px 24px rgba(60, 42, 96, 0.09);
+}
+
+.content-card h3 {
+  color: var(--violeta-oscuro);
+  font-weight: 600;
+  font-size: 1.05rem; /* Ajustado de 1.15rem */
+  letter-spacing: -0.01em;
+}
+
+/* FILTROS Y ESTADOS */
+.filtros {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(107, 70, 193, 0.18);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--violeta-oscuro);
+  font-size: 0.85rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.filtros select:focus {
+  border-color: var(--violeta-medio);
+  box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.12);
+  background: #fff;
+}
+
+.estado-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  color: #fff;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .content-card table {
@@ -26,19 +66,6 @@
     font-size: 0.9rem;
     color: #6c757d;
     /* Un gris un poco más suave para que no compita tanto con los datos */
-}
-
-.content-card:hover {
-    /* Sin transform (no se mueve). Ahora intensifica la sombra y el borde */
-    border-color: rgba(74, 63, 99, 0.3);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
-}
-
-.content-card h3 {
-    color: #4a3f63;
-    font-weight: 700;
-    font-size: 1.15rem;
-    /* Fuente un poco más pequeña (ajustá este valor si lo querés más chico aún) */
 }
 
 .estado-actual {
@@ -68,14 +95,6 @@
     word-wrap: break-word;
 }
 
-.estado-card {
-    padding: 12px 14px;
-    border-radius: 12px;
-    margin-bottom: 12px;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
 .estado-card-header {
     display: flex;
     justify-content: space-between;
@@ -92,29 +111,6 @@
 .estado-card-body {
     font-size: 0.95rem;
     opacity: 0.98;
-}
-
-.filtros {
-    display: flex;
-    flex-direction: column;
-    color: #4a3f63;
-    font-weight: 600;
-    font-size: 0.85rem;
-    margin-bottom: 6px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid rgba(74, 63, 99, 0.2);
-    background: rgba(255, 255, 255, 0.6);
-    color: #333;
-    font-size: 0.95rem;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
-.filtros select:focus {
-    border-color: #4a3f63;
-    box-shadow: 0 0 0 3px rgba(74, 63, 99, 0.15);
-    background: #fff;
 }
 
 .estado-1 {

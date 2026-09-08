@@ -1,6 +1,6 @@
 .sidebar-vertical {
   width: 250px;
-  background-color: var(--azul-principal);
+  background-color: var(--violeta-oscuro);
   color: white;
   box-shadow: 2px 0 8px rgba(0,0,0,0.15);
 }

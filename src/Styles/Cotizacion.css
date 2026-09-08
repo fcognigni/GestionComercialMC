@@ -31,31 +31,24 @@
   /* Pero por ahora, dejarlo en 1fr va a solucionar el desborde al 100% */
 }
 
-/* Grupos de campos individuales */
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
 .form-group label {
-  color: #4a3f63;
-  font-weight: 600;
-  font-size: 0.85rem;
-  margin-bottom: 6px;
+  color: var(--violeta-oscuro);
+  font-weight: 500;
+  font-size: 0.80rem;
+  margin-bottom: 4px;
 }
 
-/* Inputs, selectores y textareas genéricos */
 .form-group input[type="text"],
 .form-group input[type="number"],
 .form-group input[type="datetime-local"],
 .form-group select,
 .form-group textarea {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(74, 63, 99, 0.2);
-  background: rgba(255, 255, 255, 0.6);
-  color: #333;
-  font-size: 0.95rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(107, 70, 193, 0.18);
+  background: rgba(255, 255, 255, 0.7);
+  color: #2d3748;
+  font-size: 0.875rem;
   outline: none;
   transition: all 0.2s ease;
 }
@@ -63,9 +56,27 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: #4a3f63;
-  box-shadow: 0 0 0 3px rgba(74, 63, 99, 0.15);
+  border-color: var(--violeta-medio);
+  box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.12);
   background: #fff;
+}
+
+.btn-submit {
+  background-color: var(--violeta-oscuro);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(60, 42, 96, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-submit:hover {
+  background-color: var(--violeta-medio);
+  box-shadow: 0 4px 12px rgba(107, 70, 193, 0.3);
 }
 
 /* Estilos de error solicitados (asterisco y texto en rojo corto) */
@@ -111,25 +122,6 @@
   margin-top: 25px;
   display: flex;
   justify-content: flex-end;
-}
-
-.btn-submit {
-  background-color: #4a3f63;
-  color: #fff;
-  border: none;
-  padding: 12px 24px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  border-radius: 12px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(74, 63, 99, 0.25);
-  transition: all 0.25s ease;
-}
-
-.btn-submit:hover {
-  background-color: #382f4c;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(74, 63, 99, 0.35);
 }
 
 .btn-submit:active {

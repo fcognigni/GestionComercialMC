@@ -1,9 +1,9 @@
 .top-navbar {
-  background-color: transparent;
+  background-color: var(--lila-claro);
 }
 
 .nav-custom-btn {
-  background-color: var(--lila-principal);
+  background-color: var(--violeta-medio);
   color: rgb(7, 0, 0) !important;
   border-radius: 12px;
   padding: 14px;
@@ -17,4 +17,8 @@
 .nav-custom-btn:hover {
   transform: scale(1.03);
   background-color: #7b5dc0;
+}
+
+.a {
+  background-color: var(--violeta-medio);
 }

@@ -1,6 +1,6 @@
 .main-header {
   height: 80px;
-  background-color: var(--azul-principal);
+  background-color: var(--violeta-oscuro);
   color: white;
   box-shadow: 0 3px 10px rgba(0,0,0,0.15);
 }

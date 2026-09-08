@@ -116,7 +116,7 @@ export default function Informes() {
 
             setEstados(data.items);
 
-            console.log(estados)
+            console.log(data.items)
 
             setTotalRegistros(
                 data.totalRegistros
@@ -224,11 +224,11 @@ export default function Informes() {
                                 <tr>
 
                                     <td>
-                                        {e.idObra}
+                                        {e.referencia}
                                     </td>
 
                                     <td>
-                                        {e.idCliente}
+                                        {e.cliente}
                                     </td>
 
                                     <td>

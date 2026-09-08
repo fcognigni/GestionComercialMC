@@ -186,6 +186,16 @@ namespace APIGesCom.Services
                 IdObra =
                     Convert.ToInt64(reader["IdObra"]),
 
+                Referencia =
+                    reader["Referencia"] == DBNull.Value
+                    ? null
+                    : reader["Referencia"].ToString(),
+
+                Cliente =
+                    reader["Cliente"] == DBNull.Value
+                    ? null
+                    : reader["Cliente"].ToString(),
+
                 IdEstadoComercial =
                     Convert.ToInt32(
                         reader["IdEstadoComercial"]),

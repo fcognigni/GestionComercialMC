@@ -26,70 +26,95 @@
 .table-container {
   width: 100%;
   overflow-x: auto;
-  margin-top: 15px;
-  border-radius: 12px;
+  margin-top: 12px;
+  border-radius: 10px;
 }
 
-/* Estilos principales de la tabla */
 .custom-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 4px; /* Espaciado ligero entre filas */
   text-align: left;
-  font-family: sans-serif; /* Cambiala por la de tu proyecto */
-  font-size: 0.95rem;
+  font-size: 0.85rem; /* Letra más delicada */
 }
 
-/* Cabecera en sintonía con los tonos violetas */
+/* Cabecera */
 .custom-table th {
-  background-color: rgba(74, 63, 99, 0.08); /* Usamos el color de tu h3 con transparencia */
-  color: #4a3f63;
-  padding: 12px 16px;
+  background-color: var(--lila-soft);
+  color: var(--violeta-oscuro);
+  padding: 10px 14px;
   font-weight: 600;
-  border-bottom: 2px solid rgba(74, 63, 99, 0.15);
+  font-size: 0.80rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: none;
 }
 
-/* Celdas del cuerpo */
+.custom-table th:first-child { border-radius: 8px 0 0 8px; }
+.custom-table th:last-child { border-radius: 0 8px 8px 0; }
+
+/* Filas con Listón Lateral */
+.custom-table tbody tr {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+}
+
+.custom-table tbody tr:hover {
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(60, 42, 96, 0.06);
+}
+
 .custom-table td {
-  padding: 12px 16px;
-  color: #555;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  transition: background-color 0.2s ease;
+  padding: 10px 14px;
+  color: #4a5568;
+  border-top: 1px solid rgba(107, 70, 193, 0.06);
+  border-bottom: 1px solid rgba(107, 70, 193, 0.06);
 }
 
-/* Efecto hover en las filas para mejorar la lectura */
-.custom-table tbody tr:hover td {
-  background-color: rgba(74, 63, 99, 0.03);
+/* Listón lila en el borde izquierdo de la fila */
+.custom-table tbody tr td:first-child {
+  border-left: 3px solid var(--violeta-medio);
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
 }
 
-/* Opcional: Elimina el borde de la última fila para que no choque con el radio de la tarjeta */
-.custom-table tbody tr:last-child td {
-  border-bottom: none;
+.custom-table tbody tr td:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
 
-/* Centrar el contenido de la columna de acciones */
-.text-center {
-  text-align: center;
+/* Clase especial para números/montos */
+.custom-table .col-numero,
+.custom-table td.monto {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--violeta-oscuro);
 }
 
-/* Estilo para el botón del lápiz */
+/* Botón Editar */
 .btn-edit {
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 1.1rem;
-  padding: 6px;
-  border-radius: 8px;
-  color: #4a3f63; /* El violeta de tu diseño */
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--violeta-medio);
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Efecto hover: se pinta con un fondo sutil y se agranda un poquito */
 .btn-edit:hover {
-  background-color: rgba(74, 63, 99, 0.1);
-  transform: scale(1.1);
+  background-color: var(--lila-soft);
+  color: var(--violeta-oscuro);
+}
+
+/* Centrar el contenido de la columna de acciones */
+.text-center {
+  text-align: center;
 }
 
 /* Esto hace que el contenedor de la tabla sea flexible */

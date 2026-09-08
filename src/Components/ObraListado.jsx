@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import '../Styles/Cotizacion.css'
+
 export default function ListObra({ refreshKey }) {
 
     const [obras, setObras] = useState([]);

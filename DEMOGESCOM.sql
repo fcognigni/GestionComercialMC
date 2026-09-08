@@ -956,9 +956,9 @@ END
 GO
 
 
-CREATE PROCEDURE
-    AppData.spListarObraEstadoComercial
+CREATE PROCEDURE AppData.spListarObraEstadoComercial
 (
+    @IdCliente BIGINT = NULL,
     @IdObra BIGINT = NULL,
     @IdEstadoComercial INT = NULL,
 
@@ -973,85 +973,142 @@ BEGIN
 
     SET NOCOUNT ON;
 
+
+    /* =====================================================
+       DATOS PAGINADOS
+       ===================================================== */
+
+    ;WITH UltimoEstado AS
+    (
+        SELECT
+            OEC.Id,
+            OEC.IdObra,
+            O.Referencia,
+            O.IdCliente,
+            C.Nombre AS Cliente,
+            OEC.IdEstadoComercial,
+            OEC.Fecha,
+            OEC.Observaciones,
+            EC.Sucesores,
+            EC.Nombre AS NombreEstadoComercial,
+
+            ROW_NUMBER() OVER
+            (
+                PARTITION BY OEC.IdObra
+                ORDER BY
+                    OEC.Fecha DESC,
+                    OEC.Id DESC
+            ) AS RN
+
+        FROM AppData.ObraEstadoComercial OEC
+
+        INNER JOIN AppData.Obra O
+            ON OEC.IdObra = O.Id
+
+        INNER JOIN AppData.Cliente C
+            ON C.Id = O.IdCliente
+
+        INNER JOIN AppData.EstadoComercial EC
+            ON EC.Id = OEC.IdEstadoComercial
+    )
+
     SELECT
-        OEC.Id,
-        OEC.IdObra,
-        OEC.IdEstadoComercial,
-        OEC.Fecha,
-        OEC.Observaciones,
-        EC.Sucesores,
-        EC.Nombre AS NombreEstadoComercial
+        Id,
+        IdObra,
+        Referencia,
+        Cliente,
+        IdEstadoComercial,
+        Fecha,
+        Observaciones,
+        Sucesores,
+        NombreEstadoComercial
 
-    FROM AppData.ObraEstadoComercial OEC
-
-    INNER JOIN AppData.EstadoComercial EC
-        ON EC.Id = OEC.IdEstadoComercial
+    FROM UltimoEstado
 
     WHERE
-        (
-            @IdObra IS NULL
-            OR OEC.IdObra = @IdObra
-        )
+        RN = 1
 
-        AND
-        (
-            @IdEstadoComercial IS NULL
-            OR OEC.IdEstadoComercial =
-               @IdEstadoComercial
-        )
+        AND (@IdCliente IS NULL
+             OR IdCliente = @IdCliente)
 
-        AND
-        (
-            @FechaDesde IS NULL
-            OR OEC.Fecha >= @FechaDesde
-        )
+        AND (@IdObra IS NULL
+             OR IdObra = @IdObra)
 
-        AND
-        (
-            @FechaHasta IS NULL
-            OR OEC.Fecha <= @FechaHasta
-        )
+        AND (@IdEstadoComercial IS NULL
+             OR IdEstadoComercial = @IdEstadoComercial)
+
+        AND (@FechaDesde IS NULL
+             OR Fecha >= @FechaDesde)
+
+        AND (@FechaHasta IS NULL
+             OR Fecha < DATEADD(DAY, 1, @FechaHasta))
 
     ORDER BY
-        OEC.Fecha DESC,
-        OEC.Id DESC
+        Fecha DESC,
+        Id DESC
 
     OFFSET
-        (@Page - 1) * @PageSize
-        ROWS
+        (@Page - 1) * @PageSize ROWS
 
     FETCH NEXT
         @PageSize ROWS ONLY;
 
 
+    /* =====================================================
+       TOTAL DE REGISTROS
+       ===================================================== */
+
+    ;WITH UltimoEstado AS
+    (
+        SELECT
+            OEC.Id,
+            OEC.IdObra,
+            O.IdCliente,
+            OEC.IdEstadoComercial,
+            OEC.Fecha,
+
+            ROW_NUMBER() OVER
+            (
+                PARTITION BY OEC.IdObra
+                ORDER BY
+                    OEC.Fecha DESC,
+                    OEC.Id DESC
+            ) AS RN
+
+        FROM AppData.ObraEstadoComercial OEC
+
+        INNER JOIN AppData.Obra O
+            ON OEC.IdObra = O.Id
+
+        INNER JOIN AppData.Cliente C
+            ON C.Id = O.IdCliente
+
+        INNER JOIN AppData.EstadoComercial EC
+            ON EC.Id = OEC.IdEstadoComercial
+    )
+
     SELECT
         COUNT(*)
-    FROM AppData.ObraEstadoComercial OEC
+
+    FROM UltimoEstado
 
     WHERE
-        (
-            @IdObra IS NULL
-            OR OEC.IdObra = @IdObra
-        )
+        RN = 1
 
-        AND
-        (
-            @IdEstadoComercial IS NULL
-            OR OEC.IdEstadoComercial =
-               @IdEstadoComercial
-        )
+        AND (@IdCliente IS NULL
+             OR IdCliente = @IdCliente)
 
-        AND
-        (
-            @FechaDesde IS NULL
-            OR OEC.Fecha >= @FechaDesde
-        )
+        AND (@IdObra IS NULL
+             OR IdObra = @IdObra)
 
-        AND
-        (
-            @FechaHasta IS NULL
-            OR OEC.Fecha <= @FechaHasta
-        );
+        AND (@IdEstadoComercial IS NULL
+             OR IdEstadoComercial = @IdEstadoComercial)
+
+        AND (@FechaDesde IS NULL
+             OR Fecha >= @FechaDesde)
+
+        AND (@FechaHasta IS NULL
+             OR Fecha < DATEADD(DAY, 1, @FechaHasta));
 
 END
 GO

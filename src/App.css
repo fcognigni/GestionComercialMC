@@ -2,22 +2,29 @@
 /* GOOGLE ICONS */
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0&display=swap');
 
+/* GOOGLE FONTS: Inter para UI limpia y delicada */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  --azul-principal: #165a9f;
-  --lila-principal: #8f6cd6;
-  --lila-claro: #ebe3ff;
-  --texto-claro: #ffffff;
+  /* PALETA DE VIOLETAS Y LILAS */
+  --violeta-oscuro: #3c2a60;      /* Títulos, botones primarios, texto principal */
+  --violeta-medio: #6b46c1;       /* Bordes activos, acentos y hover */
+  --lila-soft: #ae97e4;           /* Sombras suaves, hovers livianos */
+  --lila-claro: #e9defa;          /* Fondo general de la app (más cálido) */
+  --blanco-card: rgba(255, 255, 255, 0.88);
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background-color: var(--lila-claro);
+  background-color: var(--violeta-medio);
+  color: #2d3748;
 }
 
 /* APP GENERAL */

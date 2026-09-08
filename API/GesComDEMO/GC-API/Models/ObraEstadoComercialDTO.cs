@@ -5,7 +5,10 @@ namespace GC_API.Models
 {
     public class ObraEstadoComercialDTO : ObraEstadoComercial
 {
-    // 1. Este campo recibe el string de la base de datos (ej: "3,4,5")
+    public string Cliente { get; set; }
+
+    public string Referencia {  get; set; }
+
     public string Sucesores { get; set; }
 
     public string NombreEstadoComercial { get; set; }

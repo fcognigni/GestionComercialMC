@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import '../Styles/Cliente.css'
 
 export default function ListSolicitante({
     refreshKey,
