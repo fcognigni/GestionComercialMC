@@ -1,4 +1,5 @@
 import React, { use, useEffect, useState } from "react";
+import SelectorCliente from "./SelectorCliente";
 import '../Styles/Cardpanel.css'
 
 export default function Informes() {
@@ -9,6 +10,8 @@ export default function Informes() {
     const [idObra, setIdObra] = useState("")
     const [loading, setLoading] = useState(false);
     const [clientes, setClientes] = useState([]);
+    const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+    const [errors, setError] = useState([])
 
     const [filtros, setFiltros] = useState({
         idCliente: "",
@@ -72,33 +75,37 @@ export default function Informes() {
         pageSize = 50
     } = {}) {
 
-            const params = new URLSearchParams();
+        const params = new URLSearchParams();
 
-            if (idObra) {
-                params.append("idObra", idObra);
-            }
+        if (idCliente) {
+            params.append("idCliente", idCliente)
+        }
 
-            if (idEstadoComercial) {
-                params.append(
-                    "idEstadoComercial",
-                    idEstadoComercial
-                );
-            }
+        if (idObra) {
+            params.append("idObra", idObra);
+        }
 
-            params.append("page", page);
-            params.append("pageSize", pageSize);
-
-            const response = await fetch(
-                `${API_URL}/api/ObraEstadoComercial?${params}`
+        if (idEstadoComercial) {
+            params.append(
+                "idEstadoComercial",
+                idEstadoComercial
             );
+        }
 
-            if (!response.ok) {
-                throw new Error(
-                    "Error al cargar los estados comerciales"
-                );
-            }
+        params.append("page", page);
+        params.append("pageSize", pageSize);
 
-            return await response.json();
+        const response = await fetch(
+            `${API_URL}/api/ObraEstadoComercial?${params}`
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "Error al cargar los estados comerciales"
+            );
+        }
+
+        return await response.json();
 
     }
 
@@ -130,15 +137,20 @@ export default function Informes() {
 
     const actualizarFiltro = (e) => {
 
+        console.log(e)
         const { name, value } = e.target;
 
         setFiltros(prev => ({
             ...prev,
-            [campo]: valor
+            [name]: value
         }));
 
         setPagina(1);
     }
+
+    useEffect(() => {
+        console.log("FILTROS CAMBIARON:", filtros);
+    }, [filtros]);
 
 
     useEffect(() => {
@@ -193,16 +205,11 @@ export default function Informes() {
 
                     </select>
                 </div>
-                <div className="filtro">
-                    <label htmlFor="idCliente">Cliente</label>
-                    <select
-                        name="idCliente"
-                        value={filtros.idCliente}
-                        onChange={actualizarFiltro}>
-
-
-                    </select>
-                </div>
+                <SelectorCliente
+                    clientes={clientes}
+                    value={filtros.idCliente}
+                    onSeleccionar={actualizarFiltro}
+                />
             </div>
 
             <div className="content-card">
@@ -217,30 +224,30 @@ export default function Informes() {
                         </tr>
                     </thead>
 
-                        <tbody>
-                            
-                            {estados.map (e =>
+                    <tbody>
 
-                                <tr>
+                        {estados.map(e =>
 
-                                    <td>
-                                        {e.referencia}
-                                    </td>
+                            <tr>
 
-                                    <td>
-                                        {e.cliente}
-                                    </td>
+                                <td>
+                                    {e.referencia}
+                                </td>
 
-                                    <td>
-                                        {e.nombreEstadoComercial}
-                                    </td>
+                                <td>
+                                    {e.cliente}
+                                </td>
 
-                                </tr>
-                                         
-                            )
-                            }
+                                <td>
+                                    {e.nombreEstadoComercial}
+                                </td>
 
-                        </tbody>
+                            </tr>
+
+                        )
+                        }
+
+                    </tbody>
 
 
                 </table>

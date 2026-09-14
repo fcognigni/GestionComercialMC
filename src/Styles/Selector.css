@@ -1,0 +1,109 @@
+
+/* Fondo que cubre toda la pantalla */
+.selector-overlay {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(5px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 1050;
+}
+
+
+/* Ventana */
+.selector-modal {
+    width: min(600px, 90vw);
+    height: 55vh;
+
+    background: white;
+    border-radius: 10px;
+
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+}
+
+
+/* Encabezado */
+.selector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 15px 20px;
+
+    border-bottom: 1px solid #ddd;
+}
+
+.selector-header h5 {
+    margin: 0;
+}
+
+
+/* Buscador */
+.selector-buscador {
+    padding: 15px 20px;
+
+    border-bottom: 1px solid #ddd;
+}
+
+
+/* Lista */
+.selector-lista {
+    flex: 1;
+
+    overflow-y: auto;
+
+    padding: 5px 0;
+}
+
+
+/* Cada cliente */
+.selector-item {
+    padding: 10px 20px;
+
+    cursor: pointer;
+
+    transition: background-color 0.1s;
+}
+
+
+/* Hover */
+.selector-item:hover {
+    background-color: #f2f2f2;
+}
+
+
+/* Cliente seleccionado con teclado */
+.selector-item-activo {
+    background-color: #e7f1ff;
+}
+
+
+/* Sin resultados */
+.selector-sin-resultados {
+    padding: 25px;
+
+    text-align: center;
+
+    color: #777;
+}
+
+
+/* Pie */
+.selector-footer {
+    padding: 8px 20px;
+
+    border-top: 1px solid #ddd;
+
+    color: #777;
+}
+
