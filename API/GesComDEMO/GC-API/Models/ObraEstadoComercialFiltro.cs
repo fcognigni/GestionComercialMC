@@ -8,6 +8,8 @@
 
     public DateTime? FechaHasta { get; set; }
 
+    public long? idCliente { get; set; }
+
     private int _page = 1;
 
     public int Page

@@ -6,11 +6,9 @@ export default function Informes() {
 
     const API_URL = "https://localhost:7208"
 
-    const [estadosPendientes, setEstadosPendientes] = useState([])
     const [idObra, setIdObra] = useState("")
     const [loading, setLoading] = useState(false);
     const [clientes, setClientes] = useState([]);
-    const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
     const [errors, setError] = useState([])
 
     const [filtros, setFiltros] = useState({
@@ -21,12 +19,37 @@ export default function Informes() {
     });
 
     const [estados, setEstados] = useState([]);
+    const [estadosComerciales, setEstadosComerciales] = useState([])
 
     const [totalRegistros, setTotalRegistros] =
         useState(0);
 
     const [pagina, setPagina] =
         useState(1);
+
+    const cargarEstadosComerciales = async () => {
+        try {
+            setLoading(true);
+            setError("");
+
+            const respuesta = await 
+                fetch("https://localhost:7208/api/EstadoComercial")
+            ;
+
+            if (!respuesta) throw new Error("Error cargando estados comerciales");
+
+            const data = await respuesta.json()
+            
+            setEstadosComerciales(data);
+        }
+        catch (err) {
+            console.error(err);
+            setError(err.message || "Error cargando datos");
+        }
+        finally {
+            setLoading(false);
+        }
+    };
 
     const cargarClientes = async () => {
 
@@ -48,8 +71,8 @@ export default function Informes() {
             const data =
                 await response.json();
 
+                setClientes(data)
             console.log(data)
-            setClientes(data);
 
         } catch (err) {
 
@@ -67,6 +90,10 @@ export default function Informes() {
         cargarClientes();
 
     }, []);
+
+    useEffect(() => {
+        cargarEstadosComerciales()}
+    ,[])
 
     async function cargarEstados({
         idCliente,
@@ -94,6 +121,8 @@ export default function Informes() {
 
         params.append("page", page);
         params.append("pageSize", pageSize);
+
+        console.log(params)
 
         const response = await fetch(
             `${API_URL}/api/ObraEstadoComercial?${params}`
@@ -137,13 +166,14 @@ export default function Informes() {
 
     const actualizarFiltro = (e) => {
 
-        console.log(e)
         const { name, value } = e.target;
 
         setFiltros(prev => ({
             ...prev,
             [name]: value
         }));
+
+        console.log(estados)
 
         setPagina(1);
     }
@@ -156,6 +186,7 @@ export default function Informes() {
     useEffect(() => {
 
         cargarDatos();
+        console.log("se recargaron los datos")
 
     }, [
         pagina,
@@ -172,7 +203,7 @@ export default function Informes() {
                 </div>
             )}
 
-            {!loading && estadosPendientes.length === 0 && (
+            {!loading && totalRegistros.length === 0 && (
                 <div className="historial-vacio">
                     No hay historial de estados comerciales aun.
                 </div>
@@ -191,7 +222,7 @@ export default function Informes() {
                         </option>
 
                         {
-                            estados.map(
+                            estadosComerciales.map(
                                 e => (
                                     <option
                                         key={e.id}

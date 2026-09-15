@@ -63,6 +63,12 @@ namespace APIGesCom.Services
             );
 
             cmd.Parameters.AddWithValue(
+                "@IdCliente",
+                (object?)filtro.idCliente
+                ?? DBNull.Value
+            );
+
+            cmd.Parameters.AddWithValue(
                 "@Page",
                 filtro.Page
             );

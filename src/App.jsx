@@ -22,6 +22,7 @@ import FormSolicitante from './Components/Solicitante'
 import ListSolicitante from './Components/SolicitanteListado'
 import EstadoComercialPage from './Components/EstadoComercialPage';
 import Informes from './Components/Informes';
+import ObrasPage from './Components/ObrasPage';
 
 
 function App() {
@@ -35,7 +36,7 @@ return(
         <Routes>
           <Route path= '/' element= {<Dashboard />} />
           <Route path= '/cotizacion' element= {<CardpanelCotizacion Form= {FormCotizacion} Listado= {ListCotizacion} />} />
-          <Route path= '/obra' element= {<Cardpanel Form ={FormObra} Listado= {ListObra} />} />
+          <Route path= '/obra' element= {<ObrasPage />} />
           <Route path= '/solicitante' element= {<CardpanelSolicitante Form={FormSolicitante} Listado={ListSolicitante} />} />
           <Route path= '/cliente' element= {<CardpanelABM Form ={FormCliente} Listado= {ListCliente} />} />
           <Route path= '/avances' element= {<EstadoComercialPage/>} />
