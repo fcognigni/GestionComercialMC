@@ -16,26 +16,11 @@ const CardpanelCotizacion = ({ Form, Listado }) => {
     const [cotizacionSeleccionada, setCotizacionSeleccionada] = useState(null);
 
     return (
-        <main className="main-content container-fluid py-4">
+        <main className="main-content">
 
-            <div className="row g-4">
+            <div className="obras-container">
 
-                <div className="col-12 col-lg-7">
-
-                    <div className="content-card">
-
-                        <ListCotizacion
-                            refreshKey={refreshKey}
-                            onEditar={
-                                setCotizacionSeleccionada
-                            }
-                        />
-
-                    </div>
-
-                </div>
-
-                <div className="col-12 col-lg-5">
+                
 
                     <div className="content-card">
 
@@ -51,9 +36,18 @@ const CardpanelCotizacion = ({ Form, Listado }) => {
 
                     </div>
 
-                </div>
+                    <div className="content-card">
 
-            </div>
+                        <ListCotizacion
+                            refreshKey={refreshKey}
+                            onEditar={
+                                setCotizacionSeleccionada
+                            }
+                        />
+
+                    </div>
+
+                </div>
 
         </main>
     );

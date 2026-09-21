@@ -12,9 +12,10 @@ export default function ObrasPage() {
   return (
     <div className="main-content">
       <div className="obras-container">
-        {/* Card Formulario (Arriba) */}
-        <Obra onSuccess={handleSuccess} />
-
+        <div className="content-card">
+          {/* Card Formulario (Arriba) */}
+          <Obra onSuccess={handleSuccess} />
+        </div>
         {/* Card Listado (Abajo) */}
         <div className="content-card">
           <ObraListado refreshKey={refreshKey} />

@@ -1,4 +1,5 @@
 ﻿using APIGesCom.Models;
+using GC_API.Models;
 
 public interface ICotizacionService
 {
@@ -6,7 +7,9 @@ public interface ICotizacionService
 
     Cotizacion? ListarPorId(long id);
 
-    List<Cotizacion> ListarTodos();
+    Task<ResultadoPaginado<CotizacionDTO>>
+            ListarAsync(
+            CotizacionFiltro filtro);
 
     bool Modificar(Cotizacion cotizacion);
 

@@ -1,5 +1,6 @@
 ﻿using APIGesCom.Models;
 using APIGesCom.Services;
+using GC_API.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,13 +21,16 @@ namespace APIGesCom.Controllers
         }
 
         [HttpGet]
-        // GET: CotizacionController
-        public ActionResult<IEnumerable<Cotizacion>> Listar()
+        public async Task<
+            ActionResult<
+                ResultadoPaginado<CotizacionDTO>
+            >
+        > Listar(
+            [FromQuery] CotizacionFiltro filtro)
         {
-
-            var lista = _cotizacionService.ListarTodos();
-
-            return Ok(lista);
+            return Ok(
+                await _cotizacionService.ListarAsync(filtro)
+            );
         }
 
         [HttpGet("cotizacion /{id}")]

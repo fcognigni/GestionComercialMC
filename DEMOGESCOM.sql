@@ -1565,6 +1565,130 @@ BEGIN
 END
 GO
 
+---------------------------------------------------
+-- VISTAS
+---------------------------------------------------
+
+CREATE PROCEDURE AppData.spListarCotizaciones
+(
+    @IdCliente BIGINT = NULL,
+    @IdObra BIGINT = NULL,
+
+    @FechaDesde DATETIME = NULL,
+    @FechaHasta DATETIME = NULL,
+
+    @Page INT = 1,
+    @PageSize INT = 50
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+
+    /* =====================================================
+       DATOS PAGINADOS
+       ===================================================== */
+
+    SELECT
+        C.Id,
+        C.Prefijo,
+        C.Numero,
+        C.Referencia,
+
+        CL.Id AS IdCliente,
+        CL.Nombre AS NombreCliente,
+
+        O.Id AS IdObra,
+
+        S.Nombre AS NombreSolicitante,
+
+        C.Fecha,
+        C.Monto
+
+    FROM AppData.Cotizacion C
+
+    LEFT JOIN AppData.Obra O
+        ON C.IdObra = O.Id
+
+    INNER JOIN AppData.Cliente CL
+        ON CL.Id = C.IdCliente
+
+    INNER JOIN AppData.Solicitante S
+        ON C.IdSolicitante = S.Id
+
+    WHERE
+
+        (@IdCliente IS NULL
+         OR CL.Id = @IdCliente)
+
+        AND
+
+        (@IdObra IS NULL
+         OR O.Id = @IdObra)
+
+        AND
+
+        (@FechaDesde IS NULL
+         OR C.Fecha >= @FechaDesde)
+
+        AND
+
+        (@FechaHasta IS NULL
+         OR C.Fecha < DATEADD(DAY, 1, @FechaHasta))
+
+    ORDER BY
+        C.Fecha DESC,
+        C.Id DESC
+
+    OFFSET
+        (@Page - 1) * @PageSize ROWS
+
+    FETCH NEXT
+        @PageSize ROWS ONLY;
+
+
+    /* =====================================================
+       TOTAL DE REGISTROS
+       ===================================================== */
+
+    SELECT
+        COUNT(*)
+
+    FROM AppData.Cotizacion C
+
+    LEFT JOIN AppData.Obra O
+        ON C.IdObra = O.Id
+
+    INNER JOIN AppData.Cliente CL
+        ON CL.Id = C.IdCliente
+
+    INNER JOIN AppData.Solicitante S
+        ON C.IdSolicitante = S.Id
+
+    WHERE
+
+        (@IdCliente IS NULL
+         OR CL.Id = @IdCliente)
+
+        AND
+
+        (@IdObra IS NULL
+         OR O.Id = @IdObra)
+
+        AND
+
+        (@FechaDesde IS NULL
+         OR C.Fecha >= @FechaDesde)
+
+        AND
+
+        (@FechaHasta IS NULL
+         OR C.Fecha < DATEADD(DAY, 1, @FechaHasta));
+
+END
+GO
+
 
 
 

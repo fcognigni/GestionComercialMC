@@ -1,4 +1,5 @@
 ﻿using APIGesCom.Models;
+using GC_API.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
@@ -39,7 +40,7 @@ public class CotizacionService : ICotizacionService
         return Convert.ToInt64(cmd.ExecuteScalar());
     }
 
-    public Cotizacion? ListarPorId(long id)
+    public CotizacionDTO? ListarPorId(long id)
     {
         string connString =
             _config.GetConnectionString("GesComDemo");
@@ -67,33 +68,103 @@ public class CotizacionService : ICotizacionService
         return null;
     }
 
-    public List<Cotizacion> ListarTodos()
+    public async Task<ResultadoPaginado<CotizacionDTO>>
+            ListarAsync(
+            CotizacionFiltro filtro)
     {
-        List<Cotizacion> lista = new();
+        List<CotizacionDTO> lista = new();
+
+        int totalRegistros = 0;
 
         string connString =
             _config.GetConnectionString("GesComDemo");
 
-        using SqlConnection conn =
+        await using SqlConnection conn =
             new SqlConnection(connString);
 
-        using SqlCommand cmd =
-            new SqlCommand("AppData.spListarCotizacion", conn);
+        await using SqlCommand cmd =
+            new SqlCommand(
+                "AppData.spListarCotizaciones",
+                conn);
 
-        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.CommandType =
+            CommandType.StoredProcedure;
 
-        conn.Open();
+        cmd.Parameters.AddWithValue(
+            "@IdObra",
+            (object?)filtro.IdObra ?? DBNull.Value
+        );
 
-        using SqlDataReader reader =
-            cmd.ExecuteReader();
+        cmd.Parameters.AddWithValue(
+            "@FechaDesde",
+            (object?)filtro.FechaDesde
+            ?? DBNull.Value
+        );
 
-        while (reader.Read())
+        cmd.Parameters.AddWithValue(
+            "@FechaHasta",
+            (object?)filtro.FechaHasta
+            ?? DBNull.Value
+        );
+
+        cmd.Parameters.AddWithValue(
+            "@IdCliente",
+            (object?)filtro.idCliente
+            ?? DBNull.Value
+        );
+
+        cmd.Parameters.AddWithValue(
+            "@Page",
+            filtro.Page
+        );
+
+        cmd.Parameters.AddWithValue(
+            "@PageSize",
+            filtro.PageSize
+        );
+
+        await conn.OpenAsync();
+
+        await using SqlDataReader reader =
+            await cmd.ExecuteReaderAsync();
+
+
+        // Primer resultado:
+        // los registros de la página
+
+        while (await reader.ReadAsync())
         {
             lista.Add(Mapear(reader));
         }
 
-        return lista;
+
+        // Segundo resultado:
+        // total de registros
+
+        if (await reader.NextResultAsync())
+        {
+            if (await reader.ReadAsync())
+            {
+                totalRegistros =
+                    Convert.ToInt32(reader[0]);
+            }
+        }
+
+
+        return new ResultadoPaginado<
+            CotizacionDTO>
+        {
+            Items = lista,
+
+            TotalRegistros =
+                totalRegistros,
+
+            Page = filtro.Page,
+
+            PageSize = filtro.PageSize
+        };
     }
+
 
     public bool Modificar(Cotizacion cotizacion)
     {
@@ -144,27 +215,24 @@ public class CotizacionService : ICotizacionService
         return cmd.ExecuteNonQuery() > 0;
     }
 
-    private static Cotizacion Mapear(SqlDataReader reader)
+    private static CotizacionDTO Mapear(SqlDataReader reader)
     {
-        return new Cotizacion
+        return new CotizacionDTO
         {
             Id = Convert.ToInt64(reader["Id"]),
             Prefijo = Convert.ToInt32(reader["Prefijo"]),
             Numero = Convert.ToInt32(reader["Numero"]),
             IdCliente = Convert.ToInt64(reader["IdCliente"]),
+            NombreCliente = reader["NombreCliente"].ToString(),
             IdObra = reader["IdObra"] == DBNull.Value
                 ? null
                 : Convert.ToInt64(reader["IdObra"]),
-            IdSolicitante = reader["IdSolicitante"] == DBNull.Value
+            NombreSolicitante = reader["IdSolicitante"] == DBNull.Value
                 ? null
-                : Convert.ToInt64(reader["IdSolicitante"]),
+                : reader["IdSolicitante"].ToString(),
             Referencia = reader["Referencia"].ToString()!,
-            Descripcion = reader["Descripcion"] == DBNull.Value
-                ? null
-                : reader["Descripcion"].ToString(),
             Fecha = Convert.ToDateTime(reader["Fecha"]),
             Monto = Convert.ToDecimal(reader["Monto"]),
-            Formal = Convert.ToBoolean(reader["Formal"])
         };
     }
 }
