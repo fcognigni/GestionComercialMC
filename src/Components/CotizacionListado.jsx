@@ -18,7 +18,27 @@ export default function ListCotizacion({
     const [clientes, setClientes] =
         useState([]);
 
-    const cargarCotizaciones = async () => {
+    const cargarCotizaciones = async ({
+        idCliente,
+        idObra,
+        page = 1,
+        pageSize = 50
+    } = {})  => {
+
+        const params = new URLSearchParams();
+
+        if(idCliente) {
+            params.append("IdCliente", idCliente)
+        }
+
+        if(idObra) {
+            params.append("IdObra", idObra)
+        }
+
+        params.append("page", page);
+        params.append("pageSize", pageSize);
+
+        console.log(params)
 
         try {
 
@@ -27,7 +47,7 @@ export default function ListCotizacion({
 
             const response =
                 await fetch(
-                    "https://localhost:7208/api/Cotizacion"
+                    `https://localhost:7208/api/Cotizacion?${params}`
                 );
 
             if (!response.ok) {
@@ -40,7 +60,8 @@ export default function ListCotizacion({
             const data =
                 await response.json();
 
-            setCotizaciones(data);
+            console.log("DATA", JSON.stringify(data, null, 2))
+            setCotizaciones(data.items);
 
         }
         catch (err) {

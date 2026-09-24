@@ -1609,13 +1609,13 @@ BEGIN
     FROM AppData.Cotizacion C
 
     LEFT JOIN AppData.Obra O
-        ON C.IdObra = O.Id
+        ON O.Id = C.IdObra
 
     INNER JOIN AppData.Cliente CL
         ON CL.Id = C.IdCliente
 
-    INNER JOIN AppData.Solicitante S
-        ON C.IdSolicitante = S.Id
+    LEFT JOIN AppData.Solicitante S
+        ON S.Id = C.IdSolicitante
 
     WHERE
 
@@ -1663,7 +1663,7 @@ BEGIN
     INNER JOIN AppData.Cliente CL
         ON CL.Id = C.IdCliente
 
-    INNER JOIN AppData.Solicitante S
+    LEFT JOIN AppData.Solicitante S
         ON C.IdSolicitante = S.Id
 
     WHERE
@@ -1747,7 +1747,7 @@ GO
 GRANT EXECUTE ON AppData.spEliminarObraEstadoComercial TO RolUsuario;
 GO
 
-GRANT EXECUTE ON AppData.spListarCotizacion TO RolUsuario;
+GRANT EXECUTE ON AppData.spListarCotizaciones TO RolUsuario;
 GO
 
 GRANT EXECUTE ON AppData.spInsertarCotizacion TO RolUsuario;

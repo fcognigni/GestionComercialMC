@@ -5,7 +5,7 @@ public interface ICotizacionService
 {
     long Insertar(Cotizacion cotizacion);
 
-    Cotizacion? ListarPorId(long id);
+    CotizacionDTO? ListarPorId(long id);
 
     Task<ResultadoPaginado<CotizacionDTO>>
             ListarAsync(
