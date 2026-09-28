@@ -1,5 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
+import '../Styles/Cotizacion.css'
+import SelectorCliente from "./SelectorCliente";
 
 export default function ListCotizacion({
     refreshKey,
@@ -18,20 +20,41 @@ export default function ListCotizacion({
     const [clientes, setClientes] =
         useState([]);
 
+    const [filtros, setFiltros] = useState({
+        idCliente: "",
+        idEstadoComercial: "",
+        fechaDesde: "",
+        fechaHasta: ""
+    });
+
+    const actualizarFiltro = (e) => {
+
+        const { name, value } = e.target;
+
+        setFiltros(prev => ({
+            ...prev,
+            [name]: value
+        }));
+
+        console.log(estados)
+
+        setPagina(1);
+    }
+
     const cargarCotizaciones = async ({
         idCliente,
         idObra,
         page = 1,
         pageSize = 50
-    } = {})  => {
+    } = {}) => {
 
         const params = new URLSearchParams();
 
-        if(idCliente) {
+        if (idCliente) {
             params.append("IdCliente", idCliente)
         }
 
-        if(idObra) {
+        if (idObra) {
             params.append("IdObra", idObra)
         }
 
@@ -144,82 +167,90 @@ export default function ListCotizacion({
         <>
             <h3>Listado de Cotizaciones</h3>
 
-            <table className="table table-hover align-middle">
+            <SelectorCliente
+                clientes={clientes}
+                value={filtros.idCliente}
+                onSeleccionar={actualizarFiltro}
+            />
 
-                <thead>
+            <div className="table-container">
+                <table className="custom-table">
 
-                    <tr>
-                        <th>Número</th>
-                        <th>Cliente</th>
-                        <th>Referencia</th>
-                        <th>Fecha</th>
-                        <th></th>
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {cotizaciones.length === 0 ? (
+                    <thead>
 
                         <tr>
-                            <td colSpan="5">
-                                No existen cotizaciones cargadas
-                            </td>
+                            <th>Número</th>
+                            <th>Cliente</th>
+                            <th>Referencia</th>
+                            <th>Fecha</th>
+                            <th></th>
                         </tr>
 
-                    ) : (
+                    </thead>
 
-                        cotizaciones.map(cotizacion => (
+                    <tbody>
 
-                            <tr key={cotizacion.id}>
+                        {cotizaciones.length === 0 ? (
 
-                                <td>
-                                    {cotizacion.numero}
+                            <tr>
+                                <td colSpan="5">
+                                    No existen cotizaciones cargadas
                                 </td>
-
-                                <td>
-                                    {cliente?.nombre}
-                                </td>
-
-                                <td>
-                                    {cotizacion.referencia}
-                                </td>
-
-                                <td>
-                                    {
-                                        new Date(
-                                            cotizacion.fecha
-                                        )
-                                            .toLocaleDateString(
-                                                "es-AR"
-                                            )
-                                    }
-                                </td>
-
-                                <td>
-
-                                    <button
-                                        className="btn btn-sm btn-outline-primary"
-                                        onClick={() =>
-                                            onEditar(
-                                                cotizacion
-                                            )
-                                        }
-                                    >
-                                        ✏️
-                                    </button>
-
-                                </td>
-
                             </tr>
 
-                        ))
-                    )}
+                        ) : (
 
-                </tbody>
+                            cotizaciones.map(cotizacion => (
 
-            </table>
+                                <tr key={cotizacion.id}>
+
+                                    <td>
+                                        {cotizacion.numero}
+                                    </td>
+
+                                    <td>
+                                        {cliente?.nombre}
+                                    </td>
+
+                                    <td>
+                                        {cotizacion.referencia}
+                                    </td>
+
+                                    <td>
+                                        {
+                                            new Date(
+                                                cotizacion.fecha
+                                            )
+                                                .toLocaleDateString(
+                                                    "es-AR"
+                                                )
+                                        }
+                                    </td>
+
+                                    <td>
+
+                                        <button
+                                            className="btn btn-sm btn-outline-primary"
+                                            onClick={() =>
+                                                onEditar(
+                                                    cotizacion
+                                                )
+                                            }
+                                        >
+                                            ✏️
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+
+                            ))
+                        )}
+
+                    </tbody>
+
+                </table>
+            </div>
         </>
     );
 }
