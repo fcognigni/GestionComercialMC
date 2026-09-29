@@ -5,7 +5,7 @@
 
 /* CARDS */
 .content-card {
-  min-height: 300px;
+  min-height: 100px;
   border-radius: 20px;
   background: var(--blanco-card);
   backdrop-filter: blur(8px);
@@ -149,4 +149,137 @@
     border-radius: 10px;
     background: #f5f5f5;
     margin-bottom: 12px;
+}
+
+/* =========================================================
+   FORMULARIO DE OBRA PLEGABLE
+   ========================================================= */
+
+.obra-form-card {
+    padding: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+
+/* Encabezado */
+
+.obra-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 18px 22px;
+
+    cursor: pointer;
+
+    color: var(--violeta-oscuro);
+
+    user-select: none;
+}
+
+.obra-form-header h3 {
+    margin: 0;
+}
+
+
+/* Botón de la flecha */
+
+.obra-form-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: transparent;
+
+    color: var(--violeta-oscuro);
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.3s ease;
+}
+
+.obra-form-toggle:hover {
+    background-color: rgba(107, 70, 193, 0.10);
+}
+
+
+/* =========================================================
+   ANIMACIÓN DEL CONTENIDO
+   ========================================================= */
+
+.obra-form-contenido-wrapper {
+    display: grid;
+
+    grid-template-rows: 1fr;
+
+    transition: grid-template-rows 0.3s ease;
+}
+
+.obra-form-contenido {
+    overflow: hidden;
+
+    padding: 0 22px 22px;
+}
+
+
+/* Formulario abierto */
+
+.obra-form-abierto .obra-form-contenido-wrapper {
+    grid-template-rows: 1fr;
+}
+
+
+/* Formulario cerrado */
+
+.obra-form-cerrado .obra-form-contenido-wrapper {
+    grid-template-rows: 0fr;
+}
+
+.obra-form-cerrado .obra-form-contenido {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+
+/* Rotación de la flecha */
+
+.obra-form-toggle {
+    transform: rotate(0deg);
+}
+
+.obra-form-cerrado .obra-form-toggle {
+    transform: rotate(-90deg);
+}
+
+
+
+
+
+
+
+
+
+.obra-form-card {
+    padding: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+}
+
+.obra-form-contenido-wrapper {
+    margin: 0;
+    padding: 0;
+}
+
+.obra-form-contenido {
+    margin: 0;
+    padding: 0;
 }

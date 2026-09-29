@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import SelectorCliente from "./SelectorCliente";
 import "../Styles/Cotizacion.css";
 
 export default function ListObra({ refreshKey }) {
@@ -6,23 +7,121 @@ export default function ListObra({ refreshKey }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ESTADO DE FILTROS
-  const [filtroCliente, setFiltroCliente] = useState("");
-  const [filtroReferencia, setFiltroReferencia] = useState("");
-  const [filtroFecha, setFiltroFecha] = useState("");
 
-  const cargarObras = async () => {
+  const [clientes, setClientes] = useState([]);
+
+  const [filtros, setFiltros] = useState({
+    idCliente: "",
+    referencia: "",
+    fechaDesde: "",
+    fechaHasta: ""
+  });
+
+  const cargarClientes = async () => {
+
     try {
+
+      const response =
+        await fetch(
+          "https://localhost:7208/api/Cliente"
+        );
+
+      if (!response.ok)
+        throw new Error(
+          "Error cargando clientes"
+        );
+
+      const data =
+        await response.json();
+
+      setClientes(data);
+
+    }
+    catch (err) {
+
+      setError(err.message);
+
+    }
+  };
+
+  useEffect(() => {
+
+    cargarClientes();
+
+  }, []);
+
+
+  const actualizarFiltro = (e) => {
+
+    const { name, value } = e.target;
+
+    setFiltros(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    console.log(estados)
+
+    setPagina(1);
+  }
+
+  const cargarObras = async ({
+    idCliente,
+    referencia,
+    page = 1,
+    pageSize = 50
+  } = {}) => {
+
+    const params = new URLSearchParams();
+
+    if (idCliente) {
+      params.append("IdCliente", idCliente)
+    }
+
+    if (referencia) {
+      params.append("Referencia", referencia)
+    }
+
+    params.append("page", page);
+    params.append("pageSize", pageSize);
+
+    console.log(params)
+
+    try {
+
       setLoading(true);
       setError("");
-      const response = await fetch("https://localhost:7208/api/Obra");
-      if (!response.ok) throw new Error("Error al obtener las obras");
-      const data = await response.json();
-      setObras(data);
-    } catch (err) {
+
+      const response =
+        await fetch(
+          `https://localhost:7208/api/Obra?${params}`
+        );
+
+      if (!response.ok) {
+
+        throw new Error(
+          "Error al obtener obras"
+        );
+      }
+
+      const data =
+        await response.json();
+
+      console.log("DATA", JSON.stringify(data, null, 2))
+      setObras(data.items);
+
+    }
+    catch (err) {
+
       console.error(err);
-      setError(err.message || "Ocurrió un error");
-    } finally {
+
+      setError(
+        err.message ||
+        "Error al cargar obras"
+      );
+    }
+    finally {
+
       setLoading(false);
     }
   };
@@ -31,22 +130,6 @@ export default function ListObra({ refreshKey }) {
     cargarObras();
   }, [refreshKey]);
 
-  // FILTRADO DINÁMICO
-  const obrasFiltradas = obras.filter((obra) => {
-    const coincideCliente = (obra.nombreCliente || "")
-      .toLowerCase()
-      .includes(filtroCliente.toLowerCase());
-
-    const coincideReferencia = (obra.referencia || "")
-      .toLowerCase()
-      .includes(filtroReferencia.toLowerCase());
-
-    const coincideFecha = filtroFecha
-      ? obra.fechaCreacion?.startsWith(filtroFecha)
-      : true;
-
-    return coincideCliente && coincideReferencia && coincideFecha;
-  });
 
   if (loading) return <p>Cargando obras...</p>;
   if (error) return <div className="error-msg">{error}</div>;
@@ -59,11 +142,10 @@ export default function ListObra({ refreshKey }) {
       <div className="filtros-grid">
         <div className="form-group">
           <label>Filtrar por Cliente</label>
-          <input
-            type="text"
-            placeholder="Nombre del cliente..."
-            value={filtroCliente}
-            onChange={(e) => setFiltroCliente(e.target.value)}
+          <SelectorCliente
+            clientes={clientes}
+            value={filtros.idCliente}
+            onSeleccionar={actualizarFiltro}
           />
         </div>
 
@@ -72,7 +154,7 @@ export default function ListObra({ refreshKey }) {
           <input
             type="text"
             placeholder="Buscar referencia..."
-            value={filtroReferencia}
+            value={filtros.referencia}
             onChange={(e) => setFiltroReferencia(e.target.value)}
           />
         </div>

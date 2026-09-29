@@ -290,6 +290,24 @@ UPDATE AppData.EstadoComercial SET Sucesores = NULL WHERE Id = 5; -- O vacío ''
 
 go
 
+
+
+---------------------------------------------------
+--- MONEDA
+---------------------------------------------------
+
+CREATE TABLE AppData.Moneda (
+Id INT IDENTITY(1,1) PRIMARY KEY,
+Nombre NVARCHAR(20) NOT NULL,
+RelacionPeso DECIMAL(18,4) DEFAULT 1.0
+)
+GO
+
+INSERT INTO AppData.Moneda (Nombre) Values ('Pesos')
+INSERT INTO AppData.Moneda (Nombre, RelacionPeso) Values (1500.000)
+go
+
+
 ---------------------------------------------------
 -- OBRA
 ---------------------------------------------------
@@ -307,6 +325,8 @@ CREATE TABLE AppData.Obra (
 
     MontoPactado DECIMAL(18,2),
 
+    IdMoneda INT DEFAULT 1,
+
     IdSolicitante BIGINT,
 
     CONSTRAINT FK_Obra_Cliente
@@ -315,7 +335,11 @@ CREATE TABLE AppData.Obra (
 
     CONSTRAINT FK_Obra_Solicitante
         FOREIGN KEY (IdSolicitante)
-        REFERENCES AppData.Solicitante(Id)
+        REFERENCES AppData.Solicitante(Id),
+
+    CONSTRAINT FK_Obra_Moneda
+        FOREIGN KEY (IdMoneda)
+        REFERENCES AppData.Moneda(Id)
 );
 GO
 
@@ -344,6 +368,8 @@ CREATE TABLE AppData.Cotizacion (
 
     Monto DECIMAL(18,2) NOT NULL,
 
+    IdMoneda INT DEFAULT 1,
+
     Formal BIT DEFAULT 1,
 
     CONSTRAINT FK_Cotizacion_Cliente
@@ -356,7 +382,11 @@ CREATE TABLE AppData.Cotizacion (
 
     CONSTRAINT FK_Cotizacion_Solicitante
         FOREIGN KEY (IdSolicitante)
-        REFERENCES AppData.Solicitante(Id)
+        REFERENCES AppData.Solicitante(Id),
+
+    CONSTRAINT FK_Cotizacion_Moneda
+        FOREIGN KEY (IdMoneda)
+        REFERENCES AppData.Moneda(Id)
 );
 GO
 
@@ -381,6 +411,8 @@ CREATE TABLE AppData.OrdenDeCompra (
 
     Monto DECIMAL(18,2),
 
+    IdMoneda INT DEFAULT 1,
+
     IVA DECIMAL(5,2) DEFAULT 21,
 
     CONSTRAINT FK_OC_Cliente
@@ -397,7 +429,11 @@ CREATE TABLE AppData.OrdenDeCompra (
 
     CONSTRAINT FK_OC_Cotizacion
         FOREIGN KEY (IdCotizacion)
-        REFERENCES AppData.Cotizacion(Id)
+        REFERENCES AppData.Cotizacion(Id),
+
+    CONSTRAINT FK_OC_Moneda
+        FOREIGN KEY (IdMoneda)
+        REFERENCES AppData.Moneda(Id)
 );
 GO
 
@@ -427,6 +463,7 @@ CREATE TABLE AppData.ObraEstadoComercial (
         REFERENCES AppData.EstadoComercial(Id)
 );
 GO
+
 
 ---------------------------------------------------
 -- TRIGGER VALIDACION CLIENTE
@@ -1196,6 +1233,7 @@ BEGIN
         O.Referencia AS Referencia,
         O.FechaAlta AS Fecha,
         O.MontoPactado AS Monto,
+        M.Nombre AS Moneda,
         O.IdSolicitante AS IdSolicitante,
         EC.Nombre AS EstadoComercial -- Aquí vendrá el último estado
     FROM AppData.Obra AS O
@@ -1217,10 +1255,142 @@ BEGIN
 
     -- 3. Buscamos el nombre del estado comercial basado en el ID obtenido arriba
     LEFT JOIN AppData.EstadoComercial AS EC 
-        ON UltimoEstado.IdEstadoComercial = EC.Id;
+        ON UltimoEstado.IdEstadoComercial = EC.Id
+
+    INNER JOIN AppData.Moneda AS M
+        ON M.Id = O.IdMoneda
 
 END
 GO
+
+
+--LISTAR OBRAS CON PARAMETROS
+
+
+CREATE PROCEDURE AppData.spListarObras
+(
+    @IdCliente BIGINT = NULL,
+
+    @FechaDesde DATETIME = NULL,
+    @FechaHasta DATETIME = NULL,
+
+    @Page INT = 1,
+    @PageSize INT = 50
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+
+    /* =====================================================
+       DATOS PAGINADOS
+       ===================================================== */
+
+    SELECT 
+        O.Id AS Id,
+        C.Id AS IdCliente,
+        C.Nombre AS NombreCliente,
+        O.Referencia AS Referencia,
+        O.FechaAlta AS Fecha,
+        O.MontoPactado AS Monto,
+        M.Nombre AS Moneda,
+        O.IdSolicitante AS IdSolicitante,
+        EC.Nombre AS EstadoComercial -- Aquí vendrá el último estado
+    FROM AppData.Obra AS O
+    
+    LEFT JOIN AppData.Cliente AS C 
+        ON O.IdCliente = C.Id
+    
+    -- 2. Subconsulta para obtener SOLO el último estado de cada obra
+    LEFT JOIN (
+        SELECT 
+            IdObra, 
+            IdEstadoComercial,
+            ROW_NUMBER() OVER (PARTITION BY IdObra ORDER BY Id DESC) AS Fila
+            -- Nota: Si tienes un campo Fecha en esta tabla, es mejor usar ORDER BY FechaAlta DESC
+        FROM AppData.ObraEstadoComercial
+    ) AS UltimoEstado 
+        ON O.Id = UltimoEstado.IdObra AND UltimoEstado.Fila = 1 -- Filtramos para que solo traiga la última coincidencia
+
+    -- 3. Buscamos el nombre del estado comercial basado en el ID obtenido arriba
+    LEFT JOIN AppData.EstadoComercial AS EC 
+        ON UltimoEstado.IdEstadoComercial = EC.Id
+
+    INNER JOIN AppData.Moneda AS M
+        ON M.Id = O.IdMoneda
+
+    WHERE
+
+        (@IdCliente IS NULL
+         OR C.Id = @IdCliente)
+
+        AND
+
+        (@FechaDesde IS NULL
+         OR O.FechaAlta >= @FechaDesde)
+
+        AND
+
+        (@FechaHasta IS NULL
+         OR O.FechaAlta < DATEADD(DAY, 1, @FechaHasta))
+
+    ORDER BY
+        O.FechaAlta DESC,
+        C.Id DESC
+
+    OFFSET
+        (@Page - 1) * @PageSize ROWS
+
+    FETCH NEXT
+        @PageSize ROWS ONLY;
+
+
+    /* =====================================================
+       TOTAL DE REGISTROS
+       ===================================================== */
+
+    SELECT
+        COUNT(*)
+
+    FROM AppData.Obra AS O
+    
+    LEFT JOIN AppData.Cliente AS C 
+        ON O.IdCliente = C.Id
+
+    LEFT JOIN (
+        SELECT 
+            IdObra, 
+            IdEstadoComercial,
+            ROW_NUMBER() OVER (PARTITION BY IdObra ORDER BY Id DESC) AS Fila
+
+        FROM AppData.ObraEstadoComercial
+    ) AS UltimoEstado 
+        ON O.Id = UltimoEstado.IdObra AND UltimoEstado.Fila = 1 -- Filtramos para que solo traiga la última coincidencia
+
+    LEFT JOIN AppData.EstadoComercial AS EC 
+        ON UltimoEstado.IdEstadoComercial = EC.Id
+
+    WHERE
+
+        (@IdCliente IS NULL
+         OR C.Id = @IdCliente)
+
+        AND
+
+        (@FechaDesde IS NULL
+         OR O.FechaAlta >= @FechaDesde)
+
+        AND
+
+        (@FechaHasta IS NULL
+         OR O.FechaAlta < DATEADD(DAY, 1, @FechaHasta))
+END
+GO
+
+
+
+------
 
 
 CREATE PROCEDURE AppData.spListarObraId
@@ -1604,7 +1774,8 @@ BEGIN
         S.Nombre AS NombreSolicitante,
 
         C.Fecha,
-        C.Monto
+        C.Monto,
+        M.Nombre AS Moneda
 
     FROM AppData.Cotizacion C
 
@@ -1616,6 +1787,9 @@ BEGIN
 
     LEFT JOIN AppData.Solicitante S
         ON S.Id = C.IdSolicitante
+
+    INNER JOIN AppData.Moneda AS M
+        ON M.Id = C.IdMoneda
 
     WHERE
 
