@@ -30,6 +30,7 @@ export default function FormCotizacion({
       referencia: "",
       descripcion: "",
       fecha: "",
+      idmoneda: "",
       monto: ""
     });
 
@@ -234,6 +235,11 @@ export default function FormCotizacion({
         "* Máximo 1000 caracteres";
     }
 
+    if (!formData.idmoneda) {
+      errores.idmoneda =
+        "elegí la moneda"
+    }
+
     // Fecha
     if (!formData.fecha) {
       errores.fecha =
@@ -272,6 +278,7 @@ export default function FormCotizacion({
       referencia: "",
       descripcion: "",
       fecha: "",
+      idmoneda: "",
       monto: "",
       formal: false
     });
@@ -360,6 +367,9 @@ export default function FormCotizacion({
 
               fecha:
                 formData.fecha,
+
+              idmoneda:
+                formData.idmoneda,
 
               monto:
                 monto,
@@ -527,7 +537,7 @@ export default function FormCotizacion({
 
         const indiceMonto =
           bloques.findLastIndex(t =>
-            t.startsWith("U$D") || t.startsWith("$") 
+            t.startsWith("U$D") || t.startsWith("$")
           );
 
         const montoTexto =
@@ -650,7 +660,7 @@ export default function FormCotizacion({
               onChange={handleNumeroChange}
               onBlur={handleNumeroBlur}
               name="numero"
-              className={errors.fecha ? 'input-error' : ''}  />
+              className={errors.fecha ? 'input-error' : ''} />
             {errors.numero && <span className="error-msg">{errors.numero}</span>}
           </div>
 
@@ -707,6 +717,32 @@ export default function FormCotizacion({
               onChange={handleChange}
               name="referencia" placeholder="Ej: Materiales gruesos etapa 1" className={errors.referencia ? 'input-error' : ''} />
             {errors.referencia && <span className="error-msg">{errors.referencia}</span>}
+          </div>
+
+          <div className="form-group col-span-2">
+            <label htmlFor="idmoneda">Moneda</label>
+            <select name="idmoneda"
+              value={formData.idmoneda}
+              onChange={handleChange}
+              className={
+                errors.idCliente
+                  ? "input-error"
+                  : ""
+              }
+            >
+              <option 
+              key={1}
+              value="1">
+                Pesos
+              </option>
+
+              <option 
+              key={2}
+              value="2">
+                Dólares
+              </option>
+
+            </select>
           </div>
 
           {/* Monto */}

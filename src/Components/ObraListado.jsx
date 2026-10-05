@@ -7,8 +7,10 @@ export default function ListObra({ refreshKey }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [obrasFiltradas, setObrasfiltradas] = useState([])
 
-  const [clientes, setClientes] = useState([]);
+
+  const [clientes, setClientes] = useState(obras);
 
   const [filtros, setFiltros] = useState({
     idCliente: "",
@@ -126,9 +128,18 @@ export default function ListObra({ refreshKey }) {
     }
   };
 
+  const filtrarObras = () => {
+    
+  }
+
   useEffect(() => {
     cargarObras();
   }, [refreshKey]);
+
+  useEffect(() => {
+    filtrarObras()
+  }, [filtros]
+  )
 
 
   if (loading) return <p>Cargando obras...</p>;
@@ -160,13 +171,20 @@ export default function ListObra({ refreshKey }) {
         </div>
 
         <div className="form-group">
-          <label>Filtrar por Fecha</label>
+          <label>Desde</label>
           <input
             type="date"
-            value={filtroFecha}
-            onChange={(e) => setFiltroFecha(e.target.value)}
+            value={filtros.fechaDesde}
+            onChange={(e) => setFiltros(e.target.value)}
+          />
+          <label>Hasta</label>
+          <input
+            type="date"
+            value={filtros.fechaHasta}
+            onChange={(e) => setFiltros(e.target.value)}
           />
         </div>
+        
       </div>
 
       {/* TABLA DE RESULTADOS */}

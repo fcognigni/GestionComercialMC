@@ -304,7 +304,7 @@ RelacionPeso DECIMAL(18,4) DEFAULT 1.0
 GO
 
 INSERT INTO AppData.Moneda (Nombre) Values ('Pesos')
-INSERT INTO AppData.Moneda (Nombre, RelacionPeso) Values (1500.000)
+INSERT INTO AppData.Moneda (Nombre, RelacionPeso) Values ('Dólar', 1500.0000)
 go
 
 
@@ -1865,6 +1865,395 @@ GO
 
 
 
+CREATE VIEW AppData.VistaEstadisticasCotizaciones
+AS
+
+WITH Datos AS
+(
+    SELECT
+        YEAR(C.Fecha) AS Anio,
+        MONTH(C.Fecha) AS Mes,
+
+        C.IdCliente,
+        CL.Nombre AS NombreCliente,
+
+        C.Id,
+
+        C.Monto * M.RelacionPeso AS MontoPesos,
+
+        CASE
+            WHEN C.IdObra IS NOT NULL THEN 1
+            ELSE 0
+        END AS LlevadaAObra
+
+    FROM AppData.Cotizacion C
+
+    INNER JOIN AppData.Cliente CL
+        ON CL.Id = C.IdCliente
+
+    INNER JOIN AppData.Moneda M
+        ON M.Id = C.IdMoneda
+),
+
+Agrupado AS
+(
+    SELECT
+        Anio,
+        Mes,
+        IdCliente,
+        NombreCliente,
+
+        COUNT(*) AS CantidadCotizaciones,
+
+        SUM(MontoPesos) AS MontoCotizadoPesos,
+
+        SUM(LlevadaAObra) AS CotizacionesLlevadasAObra
+
+    FROM Datos
+
+    GROUP BY
+        Anio,
+        Mes,
+        IdCliente,
+        NombreCliente
+),
+
+ConTotales AS
+(
+    SELECT
+        *,
+
+        -- TOTAL DEL MES
+        SUM(CantidadCotizaciones)
+            OVER (
+                PARTITION BY Anio, Mes
+            ) AS TotalCotizacionesMes,
+
+        SUM(MontoCotizadoPesos)
+            OVER (
+                PARTITION BY Anio, Mes
+            ) AS TotalMontoMes,
+
+        SUM(CotizacionesLlevadasAObra)
+            OVER (
+                PARTITION BY Anio, Mes
+            ) AS TotalLlevadasAObraMes,
+
+        -- TOTAL DEL AÑO
+        SUM(CantidadCotizaciones)
+            OVER (
+                PARTITION BY Anio
+            ) AS TotalCotizacionesAnio,
+
+        SUM(MontoCotizadoPesos)
+            OVER (
+                PARTITION BY Anio
+            ) AS TotalMontoAnio,
+
+        SUM(CotizacionesLlevadasAObra)
+            OVER (
+                PARTITION BY Anio
+            ) AS TotalLlevadasAObraAnio,
+
+        -- RANKING POR CANTIDAD
+        ROW_NUMBER()
+            OVER (
+                PARTITION BY Anio, Mes
+                ORDER BY CantidadCotizaciones DESC
+            ) AS RankingCantidadMes,
+
+        -- RANKING POR MONTO
+        ROW_NUMBER()
+            OVER (
+                PARTITION BY Anio, Mes
+                ORDER BY MontoCotizadoPesos DESC
+            ) AS RankingMontoMes
+
+    FROM Agrupado
+)
+
+SELECT
+
+    Anio,
+    Mes,
+
+    IdCliente,
+    NombreCliente,
+
+    CantidadCotizaciones,
+    MontoCotizadoPesos,
+
+    CotizacionesLlevadasAObra,
+
+    -- =====================================================
+    -- TOTALES DEL MES
+    -- =====================================================
+
+    TotalCotizacionesMes,
+    TotalMontoMes,
+    TotalLlevadasAObraMes,
+
+    -- =====================================================
+    -- TOTALES DEL AÑO
+    -- =====================================================
+
+    TotalCotizacionesAnio,
+    TotalMontoAnio,
+    TotalLlevadasAObraAnio,
+
+    -- =====================================================
+    -- PORCENTAJE DE PARTICIPACION
+    -- =====================================================
+
+    CAST(
+        CantidadCotizaciones * 100.0
+        / NULLIF(TotalCotizacionesMes, 0)
+        AS DECIMAL(10,2)
+    ) AS PorcentajeCotizacionesMes,
+
+    CAST(
+        CantidadCotizaciones * 100.0
+        / NULLIF(TotalCotizacionesAnio, 0)
+        AS DECIMAL(10,2)
+    ) AS PorcentajeCotizacionesAnio,
+
+    -- =====================================================
+    -- PORCENTAJE POR MONTO
+    -- =====================================================
+
+    CAST(
+        MontoCotizadoPesos * 100.0
+        / NULLIF(TotalMontoMes, 0)
+        AS DECIMAL(10,2)
+    ) AS PorcentajeMontoMes,
+
+    CAST(
+        MontoCotizadoPesos * 100.0
+        / NULLIF(TotalMontoAnio, 0)
+        AS DECIMAL(10,2)
+    ) AS PorcentajeMontoAnio,
+
+    -- =====================================================
+    -- CONVERSION A OBRA DEL CLIENTE
+    -- =====================================================
+
+    CAST(
+        CotizacionesLlevadasAObra * 100.0
+        / NULLIF(CantidadCotizaciones, 0)
+        AS DECIMAL(10,2)
+    ) AS PorcentajeLlevadasAObra,
+
+    -- =====================================================
+    -- PARTICIPACION DE LAS CONVERSIONES
+    -- =====================================================
+
+    CAST(
+        CotizacionesLlevadasAObra * 100.0
+        / NULLIF(TotalLlevadasAObraMes, 0)
+        AS DECIMAL(10,2)
+    ) AS PorcentajeLlevadasAObraSobreTotalMes,
+
+    CAST(
+        CotizacionesLlevadasAObra * 100.0
+        / NULLIF(TotalLlevadasAObraAnio, 0)
+        AS DECIMAL(10,2)
+    ) AS PorcentajeLlevadasAObraSobreTotalAnio,
+
+    -- =====================================================
+    -- RANKINGS
+    -- =====================================================
+
+    RankingCantidadMes,
+    RankingMontoMes,
+
+    CASE
+        WHEN RankingCantidadMes <= 10 THEN 1
+        ELSE 0
+    END AS EsTop10Cantidad,
+
+    CASE
+        WHEN RankingMontoMes <= 10 THEN 1
+        ELSE 0
+    END AS EsTop10Monto
+
+FROM ConTotales;
+GO
+
+
+
+
+CREATE VIEW AppData.VistaEstadisticasObras AS 
+WITH UltimoEstado AS (
+    SELECT
+        OEC.IdObra,
+        OEC.IdEstadoComercial,
+        ROW_NUMBER() OVER (
+            PARTITION BY OEC.IdObra
+            ORDER BY
+                OEC.Fecha DESC,
+                OEC.Id DESC
+        ) AS RN
+    FROM AppData.ObraEstadoComercial OEC
+),
+ObrasConOC AS (
+    -- Evitamos subconsultas trayendo las obras con OC de forma plana
+    SELECT DISTINCT IdObra
+    FROM AppData.OrdenDeCompra
+),
+Datos AS (
+    SELECT
+        YEAR(O.FechaAlta) AS Anio,
+        MONTH(O.FechaAlta) AS Mes,
+        O.Id AS IdObra,
+        O.IdCliente,
+        C.Nombre AS NombreCliente,
+        O.MontoPactado * M.RelacionPeso AS MontoPesos,
+        UE.IdEstadoComercial,
+
+        -- Facturada o Cobrada
+        CASE
+            WHEN UE.IdEstadoComercial IN (4,5) THEN 1
+            ELSE 0
+        END AS Facturada,
+
+        -- Tiene orden de compra
+        CASE
+            WHEN OC.IdObra IS NOT NULL THEN 1
+            ELSE 0
+        END AS TieneOrdenCompra
+
+    FROM AppData.Obra O
+    INNER JOIN AppData.Cliente C ON C.Id = O.IdCliente
+    INNER JOIN AppData.Moneda M ON M.Id = O.IdMoneda
+    LEFT JOIN UltimoEstado UE ON UE.IdObra = O.Id AND UE.RN = 1
+    LEFT JOIN ObrasConOC OC ON OC.IdObra = O.Id
+),
+Agrupado AS (
+    SELECT
+        Anio,
+        Mes,
+        IdCliente,
+        NombreCliente,
+        COUNT(*) AS CantidadObras,
+        SUM(MontoPesos) AS MontoObrasPesos,
+        SUM(Facturada) AS CantidadFacturadas,
+        SUM(
+            CASE
+                WHEN Facturada = 0 THEN 1
+                ELSE 0
+            END
+        ) AS CantidadPendientesFacturar,
+        SUM(TieneOrdenCompra) AS CantidadConOrdenCompra
+    FROM Datos
+    GROUP BY
+        Anio,
+        Mes,
+        IdCliente,
+        NombreCliente
+),
+ConTotales AS (
+    SELECT
+        *,
+        -- =================================================
+        -- TOTALES DEL MES
+        -- =================================================
+        SUM(CantidadObras) OVER (PARTITION BY Anio, Mes) AS TotalObrasMes,
+        SUM(MontoObrasPesos) OVER (PARTITION BY Anio, Mes) AS TotalMontoObrasMes,
+        SUM(CantidadFacturadas) OVER (PARTITION BY Anio, Mes) AS TotalFacturadasMes,
+        SUM(CantidadPendientesFacturar) OVER (PARTITION BY Anio, Mes) AS TotalPendientesFacturarMes,
+
+        -- =================================================
+        -- TOTALES DEL AÑO
+        -- =================================================
+        SUM(CantidadObras) OVER (PARTITION BY Anio) AS TotalObrasAnio,
+        SUM(MontoObrasPesos) OVER (PARTITION BY Anio) AS TotalMontoObrasAnio,
+        SUM(CantidadFacturadas) OVER (PARTITION BY Anio) AS TotalFacturadasAnio,
+        SUM(CantidadPendientesFacturar) OVER (PARTITION BY Anio) AS TotalPendientesFacturarAnio,
+
+        -- =================================================
+        -- RANKING
+        -- =================================================
+        ROW_NUMBER() OVER (
+            PARTITION BY Anio, Mes
+            ORDER BY CantidadObras DESC
+        ) AS RankingObrasMes
+
+    FROM Agrupado
+),
+TotalCliente AS (
+    SELECT
+        O.IdCliente,
+        COUNT(*) AS TotalObrasCliente,
+        SUM(
+            CASE
+                WHEN OC.IdObra IS NOT NULL THEN 1
+                ELSE 0
+            END
+        ) AS TotalObrasConOCCliente
+    FROM AppData.Obra O
+    LEFT JOIN ObrasConOC OC ON OC.IdObra = O.Id
+    GROUP BY O.IdCliente
+)
+SELECT
+    CT.Anio,
+    CT.Mes,
+    CT.IdCliente,
+    CT.NombreCliente,
+
+    -- =====================================================
+    -- OBRAS
+    -- =====================================================
+    CT.CantidadObras,
+    CT.MontoObrasPesos,
+    CT.TotalObrasMes,
+    CT.TotalMontoObrasMes,
+    CT.TotalObrasAnio,
+    CT.TotalMontoObrasAnio,
+
+    -- =====================================================
+    -- PARTICIPACION DE OBRAS
+    -- =====================================================
+    CAST(CT.CantidadObras * 100.0 / NULLIF(CT.TotalObrasMes, 0) AS DECIMAL(10,2)) AS PorcentajeObrasMes,
+    CAST(CT.CantidadObras * 100.0 / NULLIF(CT.TotalObrasAnio, 0) AS DECIMAL(10,2)) AS PorcentajeObrasAnio,
+
+    -- =====================================================
+    -- FACTURACION
+    -- =====================================================
+    CT.CantidadFacturadas,
+    CT.CantidadPendientesFacturar,
+    CAST(CT.CantidadFacturadas * 100.0 / NULLIF(CT.CantidadObras, 0) AS DECIMAL(10,2)) AS PorcentajeFacturadas,
+    CAST(CT.CantidadPendientesFacturar * 100.0 / NULLIF(CT.CantidadObras, 0) AS DECIMAL(10,2)) AS PorcentajePendientesFacturar,
+
+    -- =====================================================
+    -- FACTURACION SOBRE EL TOTAL DEL PERIODO
+    -- =====================================================
+    CAST(CT.CantidadFacturadas * 100.0 / NULLIF(CT.TotalFacturadasMes, 0) AS DECIMAL(10,2)) AS ParticipacionFacturadasMes,
+    CAST(CT.CantidadPendientesFacturar * 100.0 / NULLIF(CT.TotalPendientesFacturarMes, 0) AS DECIMAL(10,2)) AS ParticipacionPendientesMes,
+
+    -- =====================================================
+    -- ORDENES DE COMPRA HISTORICAS DEL CLIENTE
+    -- =====================================================
+    TC.TotalObrasCliente,
+    TC.TotalObrasConOCCliente,
+    CAST(TC.TotalObrasConOCCliente * 100.0 / NULLIF(TC.TotalObrasCliente, 0) AS DECIMAL(10,2)) AS PorcentajeObrasConOrdenCompra,
+
+    -- =====================================================
+    -- RANKING
+    -- =====================================================
+    CT.RankingObrasMes,
+    CASE
+        WHEN CT.RankingObrasMes <= 10 THEN 1
+        ELSE 0
+    END AS EsTop10Obras
+
+FROM ConTotales CT
+INNER JOIN TotalCliente TC ON TC.IdCliente = CT.IdCliente;
+GO
+
+
+
+
+
 
 ---------------------------------------------------
 -- LOGIN SQL SERVER
@@ -1903,6 +2292,9 @@ GO
 GRANT EXECUTE ON AppData.spListarObra TO RolUsuario;
 GO
 
+GRANT EXECUTE ON AppData.spListarObras TO RolUsuario;
+GO
+
 GRANT EXECUTE ON AppData.spInsertarObra TO RolUsuario;
 GO
 
@@ -1922,6 +2314,9 @@ GRANT EXECUTE ON AppData.spEliminarObraEstadoComercial TO RolUsuario;
 GO
 
 GRANT EXECUTE ON AppData.spListarCotizaciones TO RolUsuario;
+GO
+
+GRANT EXECUTE ON AppData.spListarCotizacion TO RolUsuario;
 GO
 
 GRANT EXECUTE ON AppData.spInsertarCotizacion TO RolUsuario;
