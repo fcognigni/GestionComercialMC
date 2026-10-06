@@ -32,6 +32,7 @@ public class CotizacionService : ICotizacionService
         cmd.Parameters.AddWithValue("@IdSolicitante", (object?)cotizacion.IdSolicitante ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@Referencia", cotizacion.Referencia);
         cmd.Parameters.AddWithValue("@Descripcion", (object?)cotizacion.Descripcion ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@IdMoneda", (object?)cotizacion.IdMoneda ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@Monto", cotizacion.Monto);
         cmd.Parameters.AddWithValue("@Formal", cotizacion.Formal);
 
@@ -232,6 +233,7 @@ public class CotizacionService : ICotizacionService
                 : reader["IdSolicitante"].ToString(),
             Referencia = reader["Referencia"].ToString()!,
             Fecha = Convert.ToDateTime(reader["Fecha"]),
+            IdMoneda = Convert.ToInt32(reader["IdMoneda"]),
             Monto = Convert.ToDecimal(reader["Monto"]),
         };
     }

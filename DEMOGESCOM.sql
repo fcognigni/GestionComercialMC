@@ -409,7 +409,7 @@ CREATE TABLE AppData.OrdenDeCompra (
 
     Fecha DATETIME DEFAULT GETDATE(),
 
-    Monto DECIMAL(18,2),
+    Monto DECIMAL(18,2) NOT NULL,
 
     IdMoneda INT DEFAULT 1,
 
@@ -1408,6 +1408,7 @@ GO
 CREATE PROCEDURE AppData.spInsertarObra
     @IdCliente BIGINT,
     @Referencia NVARCHAR(100),
+    @IdMoneda INT,
     @MontoPactado DECIMAL(18,2),
     @IdSolicitante BIGINT,
     @IdEstadoComercial INT
@@ -1421,9 +1422,9 @@ BEGIN
         BEGIN TRANSACTION;
 
         INSERT INTO AppData.Obra
-            (IdCliente, Referencia, MontoPactado, IdSolicitante)
+            (IdCliente, Referencia, IdMoneda, MontoPactado, IdSolicitante)
         VALUES
-            (@IdCliente, @Referencia, @MontoPactado, @IdSolicitante);
+            (@IdCliente, @Referencia, @IdMoneda, @MontoPactado, @IdSolicitante);
 
         SET @IdObra = SCOPE_IDENTITY();
 
@@ -1458,6 +1459,7 @@ CREATE PROCEDURE AppData.spModificarObra
 @Id BIGINT,
 @IdCliente BIGINT,
 @Referencia NVARCHAR(300),
+@IdMoneda INT,
 @MontoPactado DECIMAL(18,2),
 @IdSolicitante BIGINT
 AS
@@ -1469,7 +1471,8 @@ BEGIN
 
     UPDATE AppData.Obra
     SET IdCliente = @IdCliente,
-        Referencia = Referencia,
+        Referencia = @Referencia,
+        IdMoneda = @IdMoneda,
         MontoPactado = @MontoPactado,
         IdSolicitante = @IdSolicitante
 
@@ -1518,6 +1521,7 @@ CREATE PROCEDURE AppData.spInsertarOrdendeCompra
 @IdSolicitante BIGINT,
 @IdObra BIGINT,
 @IdCotizacion BIGINT,
+@IdMoneda INT,
 @Monto DECIMAL(18,2),
 @IVA DECIMAL(5,2)
 AS
@@ -1533,6 +1537,7 @@ BEGIN
         IdSolicitante,
         IdObra,
         IdCotizacion,
+        IdMoneda,
         Monto,
         IVA)
         VALUES
@@ -1541,6 +1546,7 @@ BEGIN
         @IdSolicitante,
         @IdObra,
         @IdCotizacion,
+        @IdMoneda,
         @Monto,
         @IVA)
 
@@ -1563,6 +1569,7 @@ CREATE PROCEDURE AppData.spModificarOrdendeCompra
 @IdSolicitante BIGINT,
 @IdObra BIGINT,
 @IdCotizacion BIGINT,
+@IdMoneda INT, 
 @Monto DECIMAL(18,2),
 @IVA DECIMAL(5,2)
 AS
@@ -1578,6 +1585,7 @@ BEGIN
         IdSolicitante = @IdSolicitante,
         IdObra = @IdObra,
         IdCotizacion = @IdCotizacion,
+        IdMoneda = @IdMoneda,
         Monto = @Monto,
         IVA = @IVA
 
@@ -1603,6 +1611,7 @@ CREATE PROCEDURE AppData.spInsertarCotizacion
     @IdSolicitante BIGINT = NULL,
     @Referencia NVARCHAR(100),
     @Descripcion NVARCHAR(1000) = NULL,
+    @IdMoneda INT, 
     @Monto DECIMAL(18,2),
     @Formal BIT = 1
 )
@@ -1619,6 +1628,7 @@ BEGIN
         IdSolicitante,
         Referencia,
         Descripcion,
+        IdMoneda,
         Monto,
         Formal
     )
@@ -1631,6 +1641,7 @@ BEGIN
         @IdSolicitante,
         @Referencia,
         @Descripcion,
+        @IdMoneda,
         @Monto,
         @Formal
     );
@@ -1658,6 +1669,7 @@ BEGIN
         Referencia,
         Descripcion,
         Fecha,
+        IdMoneda,
         Monto,
         Formal
     FROM AppData.Cotizacion
@@ -1676,6 +1688,7 @@ CREATE PROCEDURE AppData.spModificarCotizacion
     @IdSolicitante BIGINT = NULL,
     @Referencia NVARCHAR(100),
     @Descripcion NVARCHAR(1000) = NULL,
+    @IdMoneda INT,
     @Monto DECIMAL(18,2),
     @Formal BIT
 )
@@ -1692,6 +1705,7 @@ BEGIN
         IdSolicitante = @IdSolicitante,
         Referencia = @Referencia,
         Descripcion = @Descripcion,
+        IdMoneda = @IdMoneda,
         Monto = @Monto,
         Formal = @Formal
     WHERE Id = @Id;

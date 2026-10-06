@@ -15,6 +15,7 @@ builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IEstadoComercialService, EstadoComercialService>();
 builder.Services.AddScoped<IOrdenDeCompraService, OrdenDeCompraService>();
 builder.Services.AddScoped<ICotizacionService, CotizacionService>();
+builder.Services.AddScoped<IEstadisticasService, EstadisticasService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

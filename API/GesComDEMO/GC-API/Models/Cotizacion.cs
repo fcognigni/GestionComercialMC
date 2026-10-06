@@ -20,6 +20,8 @@
 
         public DateTime? Fecha { get; set; }
 
+        public int IdMoneda { get; set; }
+
         public decimal Monto { get; set; }
 
         public bool Formal { get; set; }
