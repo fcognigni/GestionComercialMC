@@ -14,7 +14,7 @@ namespace APIGesCom.Services
             _config = config;
         }
 
-        public IEnumerable<ObraDTO> ListarTodos()
+        public IEnumerable<ObraDTO> ListarTodos(ObraFiltro filtro)
         {
             List<ObraDTO> lista = new();
 
@@ -25,9 +25,37 @@ namespace APIGesCom.Services
                 new SqlConnection(connString);
 
             using SqlCommand cmd =
-                new SqlCommand("AppData.spListarObra", conn);
+                new SqlCommand("AppData.spListarObras", conn);
 
             cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.AddWithValue(
+            "@FechaDesde",
+            (object?)filtro.FechaDesde
+            ?? DBNull.Value
+        );
+
+            cmd.Parameters.AddWithValue(
+                "@FechaHasta",
+                (object?)filtro.FechaHasta
+                ?? DBNull.Value
+            );
+
+            cmd.Parameters.AddWithValue(
+                "@IdCliente",
+                (object?)filtro.idCliente
+                ?? DBNull.Value
+            );
+
+            cmd.Parameters.AddWithValue(
+                "@Page",
+                filtro.Page
+            );
+
+            cmd.Parameters.AddWithValue(
+                "@PageSize",
+                filtro.PageSize
+            );
 
             conn.Open();
 
@@ -44,6 +72,7 @@ namespace APIGesCom.Services
                     FechaAlta = reader["Fecha"] == DBNull.Value
                         ? null
                         : Convert.ToDateTime(reader["Fecha"]),
+                    Moneda = reader["Moneda"].ToString(),
                     MontoPactado = Convert.ToSingle(reader["Monto"]),
                     IdSolicitante =
                         reader["IdSolicitante"] == DBNull.Value
@@ -74,6 +103,7 @@ namespace APIGesCom.Services
 
             cmd.Parameters.AddWithValue("@Referencia", obra.Referencia);
             cmd.Parameters.AddWithValue("@IdCliente", obra.IdCliente);
+            cmd.Parameters.AddWithValue("@IdMoneda", obra.IdMoneda);
             cmd.Parameters.AddWithValue("@MontoPactado",
                 obra.MontoPactado);
             cmd.Parameters.AddWithValue("@IdSolicitante",
@@ -83,17 +113,15 @@ namespace APIGesCom.Services
 
             conn.Open();
 
-            using SqlDataReader dr =
-            cmd.ExecuteReader();
+            object result = cmd.ExecuteScalar();
 
-            if (dr.Read())
+            if (result != null && result != DBNull.Value)
             {
-                return Convert.ToInt64(
-                    dr["IdObra"]
-                );
+                return Convert.ToInt64(result);
             }
 
             return 0;
+
         }
 
         public bool Modificar(Obra obra)
@@ -116,6 +144,8 @@ namespace APIGesCom.Services
                 obra.IdCliente);
             cmd.Parameters.AddWithValue("@FechaAlta",
                 (object?)obra.FechaAlta ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@IdMoneda",
+                obra.IdMoneda);
             cmd.Parameters.AddWithValue("@MontoPactado",
                 obra.MontoPactado);
             cmd.Parameters.AddWithValue("@IdSolicitante",

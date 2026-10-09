@@ -33,15 +33,15 @@ const Sidebar = () => {
                 </li>
 
                 <li className="nav-item">
-                    <a className="nav-link d-flex align-items-center" href="#">
+                    <Link to= '/estadisticas' className="nav-link d-flex align-items-center" href="#">
                         <span className="material-symbols-outlined">
                             settings
                         </span>
 
                         <span className="menu-text">
-                            CONFIGURACIÓN
+                            Estadísticas
                         </span>
-                    </a>
+                    </Link>
                 </li>
 
             </ul>

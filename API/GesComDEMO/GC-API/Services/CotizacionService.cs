@@ -233,7 +233,7 @@ public class CotizacionService : ICotizacionService
                 : reader["IdSolicitante"].ToString(),
             Referencia = reader["Referencia"].ToString()!,
             Fecha = Convert.ToDateTime(reader["Fecha"]),
-            IdMoneda = Convert.ToInt32(reader["IdMoneda"]),
+            Moneda = reader["IdMoneda"].ToString(),
             Monto = Convert.ToDecimal(reader["Monto"]),
         };
     }

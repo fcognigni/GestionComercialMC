@@ -14,9 +14,7 @@ export default function FormObra({ onSuccess }) {
     idCotizacion: "",
     referencia: "",
     montoPactado: "",
-    moneda: "ARS",
-    formaPago: "",
-    idSolicitante: null
+    idMoneda: "1"
   });
 
   useEffect(() => {
@@ -71,8 +69,7 @@ export default function FormObra({ onSuccess }) {
     if (formData.cotizada === "no" && !formData.referencia.trim()) nuevosErrores.referencia = "* Campo obligatorio";
     if (formData.referencia.length > 100) nuevosErrores.referencia = "* Máximo 100 caracteres";
     if (!formData.montoPactado || Number(formData.montoPactado) <= 0) nuevosErrores.montoPactado = "* Monto inválido";
-    if (!formData.formaPago) nuevosErrores.formaPago = "* Seleccione forma de pago";
-
+    
     return nuevosErrores;
   };
 
@@ -83,8 +80,7 @@ export default function FormObra({ onSuccess }) {
       idCotizacion: "",
       referencia: "",
       montoPactado: "",
-      moneda: "ARS",
-      formaPago: "",
+      idMoneda: "1",
       idSolicitante: ""
     });
     setErrors({});
@@ -112,13 +108,13 @@ export default function FormObra({ onSuccess }) {
         referencia: formData.cotizada === "si" ? cotizacionSeleccionada?.referencia : formData.referencia,
         idCliente: formData.idCliente,
         montoPactado: Number(formData.montoPactado),
-        moneda: formData.moneda,
-        formaPago: formData.formaPago,
+        idMoneda: parseInt(formData.idMoneda),
         idSolicitante: null
       };
 
       const idEstadoComercial = formData.cotizada === "si" ? 2 : 1;
 
+      console.log(body)
       const response = await fetch(
         `https://localhost:7208/api/Obra?id=${idEstadoComercial}`,
         {
@@ -132,6 +128,7 @@ export default function FormObra({ onSuccess }) {
         const mensaje = await response.text();
         throw new Error(mensaje || "Error al crear obra");
       }
+
 
       limpiarFormulario();
       if (onSuccess) onSuccess();
@@ -217,23 +214,11 @@ export default function FormObra({ onSuccess }) {
           <div className="form-group">
             <label>Moneda</label>
             <select name="moneda" value={formData.moneda} onChange={handleChange}>
-              <option value="ARS">ARS ($)</option>
-              <option value="USD">USD (US$)</option>
-              <option value="EUR">EUR (€)</option>
+              <option value="1">ARS ($)</option>
+              <option value="2">USD (US$)</option>
             </select>
           </div>
 
-          <div className="form-group">
-            <label>Forma de Pago</label>
-            <select name="formaPago" value={formData.formaPago} onChange={handleChange}>
-              <option value="">Seleccione...</option>
-              <option value="Contado">Contado</option>
-              <option value="Transferencia">Transferencia</option>
-              <option value="Cheque">Cheque</option>
-              <option value="Financiado">Financiado / Cuotas</option>
-            </select>
-            {errors.formaPago && <span className="error-msg">{errors.formaPago}</span>}
-          </div>
         </div>
 
         <div className="form-actions">

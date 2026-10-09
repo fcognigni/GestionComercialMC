@@ -23,6 +23,7 @@ import ListSolicitante from './Components/SolicitanteListado'
 import EstadoComercialPage from './Components/EstadoComercialPage';
 import Informes from './Components/Informes';
 import ObrasPage from './Components/ObrasPage';
+import Estadisticas from './Components/Informes2';
 
 
 function App() {
@@ -41,6 +42,7 @@ return(
           <Route path= '/cliente' element= {<CardpanelABM Form ={FormCliente} Listado= {ListCliente} />} />
           <Route path= '/avances' element= {<EstadoComercialPage/>} />
           <Route path= '/informes' element= {<Informes />} />
+          <Route path= '/estadisticas' element= {< Estadisticas/>} />
         </Routes>
         </div>
        <Footer />

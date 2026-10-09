@@ -69,7 +69,6 @@ export default function ListObra({ refreshKey }) {
 
   const cargarObras = async ({
     idCliente,
-    referencia,
     page = 1,
     pageSize = 50
   } = {}) => {
@@ -78,10 +77,6 @@ export default function ListObra({ refreshKey }) {
 
     if (idCliente) {
       params.append("IdCliente", idCliente)
-    }
-
-    if (referencia) {
-      params.append("Referencia", referencia)
     }
 
     params.append("page", page);
@@ -134,7 +129,7 @@ export default function ListObra({ refreshKey }) {
 
   useEffect(() => {
     cargarObras();
-  }, [refreshKey]);
+  }, [refreshKey, filtros]);
 
   useEffect(() => {
     filtrarObras()
@@ -200,14 +195,14 @@ export default function ListObra({ refreshKey }) {
             </tr>
           </thead>
           <tbody>
-            {obrasFiltradas.length === 0 ? (
+            {obras.length === 0 ? (
               <tr>
                 <td colSpan="5" className="text-center">
                   No se encontraron obras con los criterios ingresados
                 </td>
               </tr>
             ) : (
-              obrasFiltradas.map((obra) => (
+              obras.map((obra) => (
                 <tr key={obra.id}>
                   <td className="col-numero">{obra.id}</td>
                   <td>{obra.referencia}</td>

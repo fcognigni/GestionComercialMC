@@ -17,9 +17,11 @@ namespace APIGesCom.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<ObraDTO>> ListarTodos()
+        public ActionResult<IEnumerable<ObraDTO>>
+            ListarTodos(
+            [FromQuery] ObraFiltro filtro)
         {
-            var obras = _service.ListarTodos();
+            var obras = _service.ListarTodos(filtro);
 
             return Ok(obras);
         }

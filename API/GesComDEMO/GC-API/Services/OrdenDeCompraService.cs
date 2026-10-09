@@ -133,6 +133,8 @@ namespace APIGesCom.Services
                         reader["Fecha"] == DBNull.Value
                         ? null
                         : Convert.ToDateTime(reader["Fecha"]);
+                    OC.IdMoneda =
+                        Convert.ToInt32(reader["IdMoneda"]);
 
                     OC.Monto =
                         reader["Monto"] == DBNull.Value
@@ -190,6 +192,10 @@ namespace APIGesCom.Services
             cmd.Parameters.AddWithValue(
                 "@Fecha",
                 (object?)orden.Fecha ?? DBNull.Value);
+
+            cmd.Parameters.AddWithValue(
+                "@IdMoneda",
+                (object?)orden.IdMoneda ?? DBNull.Value);
 
             cmd.Parameters.AddWithValue(
                 "@Monto",

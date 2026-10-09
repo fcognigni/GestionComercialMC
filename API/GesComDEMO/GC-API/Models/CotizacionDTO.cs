@@ -20,6 +20,8 @@
 
         public DateTime Fecha { get; set; }
 
+        public string Moneda { get; set; }
+
         public decimal Monto { get; set; }
     }
 }

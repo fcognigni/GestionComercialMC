@@ -1,11 +1,12 @@
 ﻿using APIGesCom.Models;
 using GC_API.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace APIGesCom.Services
 {
     public interface IObraService
     {
-        IEnumerable<ObraDTO> ListarTodos();
+        IEnumerable<ObraDTO> ListarTodos([FromQuery] ObraFiltro filtro);
 
         long Insertar(Obra obra, int id);
 

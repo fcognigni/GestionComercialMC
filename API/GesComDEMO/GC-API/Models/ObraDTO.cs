@@ -6,5 +6,7 @@ namespace GC_API.Models;
     {
         public string EstadoComercial { get; set; }
         public string NombreCliente { get; set; }
+
+        public string Moneda { get; set; }
     }
 

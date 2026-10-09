@@ -13,6 +13,7 @@
     public long? IdCotizacion { get; set; }
 
     public DateTime? Fecha { get; set; }
+    public int IdMoneda { get; set; }
 
     public decimal? Monto { get; set; }
 

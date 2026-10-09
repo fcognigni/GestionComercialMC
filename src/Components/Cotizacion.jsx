@@ -30,7 +30,7 @@ export default function FormCotizacion({
       referencia: "",
       descripcion: "",
       fecha: "",
-      idmoneda: "",
+      idMoneda: "",
       monto: ""
     });
 

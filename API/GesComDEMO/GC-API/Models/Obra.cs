@@ -8,6 +8,7 @@
         public string? Descripcion { get; set; } = null;
         public long IdCliente { get; set; }
         public DateTime? FechaAlta { get; set; }
+        public int? IdMoneda { get; set; }
         public float MontoPactado { get; set; }
         public long? IdSolicitante { get; set; }
     }

@@ -1,9 +1,9 @@
-﻿using APIGesCom.Services;
+﻿
 using GC_API.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
-namespace GestionComercialMC.Services
+namespace APIGesCom.Services
 {
     public class EstadisticasService : IEstadisticasService
     {
