@@ -176,7 +176,8 @@ export default function FormObra({ onSuccess }) {
               <label>Cotización vinculada</label>
               <select name="idCotizacion" value={formData.idCotizacion} onChange={handleChange}>
                 <option value="">Seleccione...</option>
-                {cotizaciones.map((c) => (
+                { cotizaciones ==! [] &&
+                cotizaciones.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.prefijo}-{c.numero} - {c.referencia}
                   </option>

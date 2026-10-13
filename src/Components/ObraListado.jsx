@@ -7,7 +7,6 @@ export default function ListObra({ refreshKey }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [obrasFiltradas, setObrasfiltradas] = useState([])
 
 
   const [clientes, setClientes] = useState(obras);
@@ -105,7 +104,7 @@ export default function ListObra({ refreshKey }) {
         await response.json();
 
       console.log("DATA", JSON.stringify(data, null, 2))
-      setObras(data.items);
+      setObras(data);
 
     }
     catch (err) {
