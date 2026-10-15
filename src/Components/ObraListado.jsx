@@ -13,7 +13,6 @@ export default function ListObra({ refreshKey }) {
 
   const [filtros, setFiltros] = useState({
     idCliente: "",
-    referencia: "",
     fechaDesde: "",
     fechaHasta: ""
   });
@@ -155,22 +154,14 @@ export default function ListObra({ refreshKey }) {
         </div>
 
         <div className="form-group">
-          <label>Filtrar por Referencia</label>
-          <input
-            type="text"
-            placeholder="Buscar referencia..."
-            value={filtros.referencia}
-            onChange={(e) => setFiltroReferencia(e.target.value)}
-          />
-        </div>
-
-        <div className="form-group">
           <label>Desde</label>
           <input
             type="date"
             value={filtros.fechaDesde}
             onChange={(e) => setFiltros(e.target.value)}
           />
+          </div>
+          <div className="form-group">
           <label>Hasta</label>
           <input
             type="date"

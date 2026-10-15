@@ -25,7 +25,7 @@ namespace APIGesCom.Services
             var lista = new List<EstadisticaCotizacionDTO>();
 
             var connectionString =
-                _configuration.GetConnectionString("DefaultConnection");
+                _configuration.GetConnectionString("GesComDemo");
 
             using var connection =
                 new SqlConnection(connectionString);
@@ -145,8 +145,8 @@ namespace APIGesCom.Services
         {
             var lista = new List<EstadisticaObraDTO>();
 
-            var connectionString =
-                _configuration.GetConnectionString("DefaultConnection");
+            string connectionString =
+                _configuration.GetConnectionString("GesComDemo");
 
             using var connection =
                 new SqlConnection(connectionString);

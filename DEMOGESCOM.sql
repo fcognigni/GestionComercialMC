@@ -1411,7 +1411,8 @@ CREATE PROCEDURE AppData.spInsertarObra
     @IdMoneda INT,
     @MontoPactado DECIMAL(18,2),
     @IdSolicitante BIGINT,
-    @IdEstadoComercial INT
+    @IdEstadoComercial INT,
+    @FechaAlta DATETIME
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1422,9 +1423,9 @@ BEGIN
         BEGIN TRANSACTION;
 
         INSERT INTO AppData.Obra
-            (IdCliente, Referencia, IdMoneda, MontoPactado, IdSolicitante)
+            (IdCliente, Referencia, IdMoneda, MontoPactado, IdSolicitante, FechaAlta)
         VALUES
-            (@IdCliente, @Referencia, @IdMoneda, @MontoPactado, @IdSolicitante);
+            (@IdCliente, @Referencia, @IdMoneda, @MontoPactado, @IdSolicitante, @FechaAlta);
 
         SET @IdObra = SCOPE_IDENTITY();
 
@@ -1461,7 +1462,8 @@ CREATE PROCEDURE AppData.spModificarObra
 @Referencia NVARCHAR(300),
 @IdMoneda INT,
 @MontoPactado DECIMAL(18,2),
-@IdSolicitante BIGINT
+@IdSolicitante BIGINT,
+@FechaAlta DATETIME
 AS
 BEGIN
 
@@ -1474,7 +1476,8 @@ BEGIN
         Referencia = @Referencia,
         IdMoneda = @IdMoneda,
         MontoPactado = @MontoPactado,
-        IdSolicitante = @IdSolicitante
+        IdSolicitante = @IdSolicitante,
+        FechaAlta = @FechaAlta
 
     SELECT 1 AS OK,
         'OBRA MODIFICADA CORRECTAMENTE' AS MESSAGE
@@ -2384,6 +2387,11 @@ GO
 GRANT EXECUTE ON AppData.spEliminarSolicitante TO RolUsuario;
 GO
 
+GRANT EXECUTE ON AppData.VistaEstadisticasCotizaciones TO RolUsuario;
+GO
+
+GRANT EXECUTE ON AppData.VistaEstadisticasObras TO RolUsuario;
+GO
 
 
 

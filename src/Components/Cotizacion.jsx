@@ -645,6 +645,7 @@ export default function FormCotizacion({
         <div className="form-grid">
 
           <div className="form-group">
+            <label htmlFor="file">Carga por archivo</label>
             <input type="file" accept=".docx" onChange={handleFileUpload} />
             {/*
             <p>Datos de los Marcadores:</p>
