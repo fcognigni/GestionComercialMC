@@ -452,7 +452,7 @@ CREATE TABLE AppData.ObraEstadoComercial (
 
     Observaciones NVARCHAR(300),
 
-    Activo BIT DEFAULT 1
+    Activo BIT DEFAULT 1,
 
     CONSTRAINT FK_OEC_Obra
         FOREIGN KEY (IdObra)
@@ -666,6 +666,8 @@ BEGIN
 
     SET NOCOUNT ON;
 
+    DECLARE @IdCliente BIGINT;
+
     BEGIN TRY
 
         INSERT INTO AppData.Cliente
@@ -685,15 +687,19 @@ BEGIN
             @Numero
         );
 
+        SET @IdCliente = CONVERT(BIGINT, SCOPE_IDENTITY());
+
         SELECT
-            1 AS Ok,
+            @IdCliente AS Id,
+            CAST(1 AS BIT) AS Ok,
             'Cliente insertado correctamente' AS Mensaje;
 
     END TRY
     BEGIN CATCH
 
         SELECT
-            0 AS Ok,
+            CAST(NULL AS BIGINT) AS Id,
+            CAST(0 AS BIT) AS Ok,
             ERROR_MESSAGE() AS Mensaje;
 
     END CATCH
@@ -766,15 +772,20 @@ BEGIN TRY
             Numero = @Numero
 
         WHERE Id = @Id
+
+    IF @@ROWCOUNT = 0
+        THROW 50001, 'Cliente inexistente.', 1;
     
-    SELECT 1 AS OK,
+    SELECT @Id AS Id,
+    CAST(1 AS BIT) AS OK,
     'Cliente modificado correctamente' as MESSAGE
 
     END TRY
     BEGIN CATCH
 
-    SELECT 0 AS ERROR,
-    'Error al intentar modificar' as MESSAGE
+    SELECT CAST(NULL AS BIGINT) AS Id,
+    CAST(0 AS BIT) AS OK,
+    ERROR_MESSAGE() as MESSAGE
     END CATCH
 
 END
@@ -793,15 +804,20 @@ BEGIN TRY
         SET Activo = 0
 
         WHERE Id = @Id
+
+    IF @@ROWCOUNT = 0
+        THROW 50002, 'Cliente inexistente.', 1;
     
-    SELECT 1 AS OK,
+    SELECT @Id AS Id,
+    CAST(1 AS BIT) AS OK,
     'Cliente eliminado correctamente' as MESSAGE
 
     END TRY
     BEGIN CATCH
 
-    SELECT 0 AS ERROR,
-    'Error al intentar modificar' as MESSAGE
+    SELECT CAST(NULL AS BIGINT) AS Id,
+    CAST(0 AS BIT) AS OK,
+    ERROR_MESSAGE() as MESSAGE
     END CATCH
 
 END
@@ -870,6 +886,8 @@ BEGIN
 
     SET NOCOUNT ON
 
+    DECLARE @IdSolicitanteGenerado BIGINT;
+
     BEGIN TRY
 
         INSERT INTO AppData.Solicitante
@@ -877,15 +895,19 @@ BEGIN
         VALUES
             (@Nombre, @IdCliente, @Telefono, @Email)
 
+        SET @IdSolicitanteGenerado = CONVERT(BIGINT, SCOPE_IDENTITY());
+
         SELECT
-            1 AS Ok,
+            @IdSolicitanteGenerado AS Id,
+            CAST(1 AS BIT) AS Ok,
             'Solicitante insertado correctamente' AS Mensaje;
 
         END TRY
         BEGIN CATCH
 
             SELECT
-                0 AS Ok,
+                CAST(NULL AS BIGINT) AS Id,
+                CAST(0 AS BIT) AS Ok,
                 ERROR_MESSAGE() AS Mensaje;
 
         END CATCH
@@ -914,14 +936,19 @@ BEGIN
             Email = @Email
         WHERE Id = @Id
 
-        SELECT 1 AS OK,
+        IF @@ROWCOUNT = 0
+            THROW 50003, 'Solicitante inexistente.', 1;
+
+        SELECT @Id AS Id,
+            CAST(1 AS BIT) AS OK,
             'Solicitante actualizado correctamente' AS MENSAJE
 
         END TRY
         BEGIN CATCH
 
         SELECT
-                0 AS Ok,
+                CAST(NULL AS BIGINT) AS Id,
+                CAST(0 AS BIT) AS Ok,
                 ERROR_MESSAGE() AS Mensaje;
 
         END CATCH
@@ -942,14 +969,19 @@ BEGIN
         SET Activo = 0
         WHERE Id = @Id
 
-        SELECT 1 AS OK,
+        IF @@ROWCOUNT = 0
+            THROW 50004, 'Solicitante inexistente.', 1;
+
+        SELECT @Id AS Id,
+            CAST(1 AS BIT) AS OK,
             'Solicitante eliminado correctamente' AS MENSAJE
 
         END TRY
         BEGIN CATCH
 
         SELECT
-                0 AS Ok,
+                CAST(NULL AS BIGINT) AS Id,
+                CAST(0 AS BIT) AS Ok,
                 ERROR_MESSAGE() AS Mensaje;
 
         END CATCH
@@ -960,35 +992,60 @@ GO
 
 
 CREATE PROCEDURE AppData.spInsertarObraEstadoComercial
-@IdObra BIGINT,
-@IdEstadoComercial INT,
-@Observaciones NVARCHAR (300)
+    @IdObra BIGINT,
+    @IdEstadoComercial INT,
+    @Observaciones NVARCHAR(300) = NULL
 AS
 BEGIN
+    SET NOCOUNT ON;
 
-    SET NOCOUNT ON
+    DECLARE @IdEstadoGenerado BIGINT;
+    DECLARE @EstadoActual INT;
+    DECLARE @Sucesores NVARCHAR(100);
 
     BEGIN TRY
+        BEGIN TRANSACTION;
 
-    INSERT INTO AppData.ObraEstadoComercial
-        (IdObra,
-        IdEstadoComercial,
-        Observaciones)
-        VALUES
-        (@IdObra,
-        @IdEstadoComercial,
-        @Observaciones)
+        IF NOT EXISTS (SELECT 1 FROM AppData.Obra WHERE Id = @IdObra)
+            THROW 50020, 'Obra inexistente.', 1;
 
-    SELECT 1 AS OK,
-        'Estado insertado correctamente' AS MESSAGE
+        IF NOT EXISTS (SELECT 1 FROM AppData.EstadoComercial WHERE Id = @IdEstadoComercial)
+            THROW 50021, 'Estado comercial inexistente.', 1;
+
+        SELECT TOP (1)
+            @EstadoActual = OEC.IdEstadoComercial,
+            @Sucesores = EC.Sucesores
+        FROM AppData.ObraEstadoComercial OEC
+        INNER JOIN AppData.EstadoComercial EC ON EC.Id = OEC.IdEstadoComercial
+        WHERE OEC.IdObra = @IdObra
+          AND OEC.Activo = 1
+        ORDER BY OEC.Fecha DESC, OEC.Id DESC;
+
+        IF @EstadoActual IS NOT NULL
+           AND NOT EXISTS
+           (
+               SELECT 1
+               FROM STRING_SPLIT(COALESCE(@Sucesores, ''), ',')
+               WHERE TRY_CONVERT(INT, LTRIM(RTRIM(value))) = @IdEstadoComercial
+           )
+            THROW 50022, 'La transición desde el estado comercial actual no está permitida.', 1;
+
+        INSERT INTO AppData.ObraEstadoComercial (IdObra, IdEstadoComercial, Observaciones)
+        VALUES (@IdObra, @IdEstadoComercial, @Observaciones);
+
+        SET @IdEstadoGenerado = CONVERT(BIGINT, SCOPE_IDENTITY());
+        COMMIT TRANSACTION;
+
+        SELECT @IdEstadoGenerado AS Id,
+               CAST(1 AS BIT) AS Ok,
+               'Estado comercial registrado correctamente.' AS Mensaje;
     END TRY
-
     BEGIN CATCH
-
-    SELECT 0 AS OK,
-        'No se insertó el estado' AS MESSAGE
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        SELECT CAST(NULL AS BIGINT) AS Id,
+               CAST(0 AS BIT) AS Ok,
+               ERROR_MESSAGE() AS Mensaje;
     END CATCH
-
 END
 GO
 
@@ -998,196 +1055,56 @@ CREATE PROCEDURE AppData.spListarObraEstadoComercial
     @IdCliente BIGINT = NULL,
     @IdObra BIGINT = NULL,
     @IdEstadoComercial INT = NULL,
-
     @FechaDesde DATETIME = NULL,
     @FechaHasta DATETIME = NULL,
-
     @Page INT = 1,
     @PageSize INT = 50
 )
 AS
 BEGIN
-
     SET NOCOUNT ON;
 
-
-    /* =====================================================
-       DATOS PAGINADOS
-       ===================================================== */
-
-    ;WITH UltimoEstado AS
-    (
-        SELECT
-            OEC.Id,
-            OEC.IdObra,
-            O.Referencia,
-            O.IdCliente,
-            C.Nombre AS Cliente,
-            OEC.IdEstadoComercial,
-            OEC.Fecha,
-            OEC.Observaciones,
-            EC.Sucesores,
-            EC.Nombre AS NombreEstadoComercial,
-
-            ROW_NUMBER() OVER
-            (
-                PARTITION BY OEC.IdObra
-                ORDER BY
-                    OEC.Fecha DESC,
-                    OEC.Id DESC
-            ) AS RN
-
-        FROM AppData.ObraEstadoComercial OEC
-
-        INNER JOIN AppData.Obra O
-            ON OEC.IdObra = O.Id
-
-        INNER JOIN AppData.Cliente C
-            ON C.Id = O.IdCliente
-
-        INNER JOIN AppData.EstadoComercial EC
-            ON EC.Id = OEC.IdEstadoComercial
-    )
-
     SELECT
-        Id,
-        IdObra,
-        Referencia,
-        Cliente,
-        IdEstadoComercial,
-        Fecha,
-        Observaciones,
-        Sucesores,
-        NombreEstadoComercial
+        OEC.Id, OEC.IdObra, O.Referencia, O.IdCliente, C.Nombre AS Cliente,
+        OEC.IdEstadoComercial, OEC.Fecha, OEC.Observaciones, OEC.Activo,
+        EC.Sucesores, EC.Nombre AS NombreEstadoComercial
+    FROM AppData.ObraEstadoComercial OEC
+    INNER JOIN AppData.Obra O ON OEC.IdObra = O.Id
+    INNER JOIN AppData.Cliente C ON C.Id = O.IdCliente
+    INNER JOIN AppData.EstadoComercial EC ON EC.Id = OEC.IdEstadoComercial
+    WHERE (@IdCliente IS NULL OR O.IdCliente = @IdCliente)
+      AND (@IdObra IS NULL OR OEC.IdObra = @IdObra)
+      AND (@IdEstadoComercial IS NULL OR OEC.IdEstadoComercial = @IdEstadoComercial)
+      AND (@FechaDesde IS NULL OR OEC.Fecha >= @FechaDesde)
+      AND (@FechaHasta IS NULL OR OEC.Fecha < DATEADD(DAY, 1, @FechaHasta))
+    ORDER BY OEC.Fecha DESC, OEC.Id DESC
+    OFFSET (@Page - 1) * @PageSize ROWS FETCH NEXT @PageSize ROWS ONLY;
 
-    FROM UltimoEstado
-
-    WHERE
-        RN = 1
-
-        AND (@IdCliente IS NULL
-             OR IdCliente = @IdCliente)
-
-        AND (@IdObra IS NULL
-             OR IdObra = @IdObra)
-
-        AND (@IdEstadoComercial IS NULL
-             OR IdEstadoComercial = @IdEstadoComercial)
-
-        AND (@FechaDesde IS NULL
-             OR Fecha >= @FechaDesde)
-
-        AND (@FechaHasta IS NULL
-             OR Fecha < DATEADD(DAY, 1, @FechaHasta))
-
-    ORDER BY
-        Fecha DESC,
-        Id DESC
-
-    OFFSET
-        (@Page - 1) * @PageSize ROWS
-
-    FETCH NEXT
-        @PageSize ROWS ONLY;
-
-
-    /* =====================================================
-       TOTAL DE REGISTROS
-       ===================================================== */
-
-    ;WITH UltimoEstado AS
-    (
-        SELECT
-            OEC.Id,
-            OEC.IdObra,
-            O.IdCliente,
-            OEC.IdEstadoComercial,
-            OEC.Fecha,
-
-            ROW_NUMBER() OVER
-            (
-                PARTITION BY OEC.IdObra
-                ORDER BY
-                    OEC.Fecha DESC,
-                    OEC.Id DESC
-            ) AS RN
-
-        FROM AppData.ObraEstadoComercial OEC
-
-        INNER JOIN AppData.Obra O
-            ON OEC.IdObra = O.Id
-
-        INNER JOIN AppData.Cliente C
-            ON C.Id = O.IdCliente
-
-        INNER JOIN AppData.EstadoComercial EC
-            ON EC.Id = OEC.IdEstadoComercial
-    )
-
-    SELECT
-        COUNT(*)
-
-    FROM UltimoEstado
-
-    WHERE
-        RN = 1
-
-        AND (@IdCliente IS NULL
-             OR IdCliente = @IdCliente)
-
-        AND (@IdObra IS NULL
-             OR IdObra = @IdObra)
-
-        AND (@IdEstadoComercial IS NULL
-             OR IdEstadoComercial = @IdEstadoComercial)
-
-        AND (@FechaDesde IS NULL
-             OR Fecha >= @FechaDesde)
-
-        AND (@FechaHasta IS NULL
-             OR Fecha < DATEADD(DAY, 1, @FechaHasta));
-
+    SELECT COUNT(*)
+    FROM AppData.ObraEstadoComercial OEC
+    INNER JOIN AppData.Obra O ON OEC.IdObra = O.Id
+    WHERE (@IdCliente IS NULL OR O.IdCliente = @IdCliente)
+      AND (@IdObra IS NULL OR OEC.IdObra = @IdObra)
+      AND (@IdEstadoComercial IS NULL OR OEC.IdEstadoComercial = @IdEstadoComercial)
+      AND (@FechaDesde IS NULL OR OEC.Fecha >= @FechaDesde)
+      AND (@FechaHasta IS NULL OR OEC.Fecha < DATEADD(DAY, 1, @FechaHasta));
 END
 GO
 
 
 CREATE PROCEDURE AppData.spListarObraEstadoComercialPorObra
-@Id BIGINT
+    @Id BIGINT
 AS
 BEGIN
-
-SELECT
-    OEC.Id,
-    OEC.IdObra,
-    O.Referencia as Referencia,
-    OEC.IdEstadoComercial,
-    EC.Nombre as NombreEstadoComercial,
-    EC.Sucesores,
-    OEC.Fecha,
-    OEC.Observaciones,
-    OEC.Activo
-FROM AppData.ObraEstadoComercial OEC
-INNER JOIN AppData.Obra O
-    ON O.Id = OEC.IdObra
-INNER JOIN AppData.EstadoComercial EC
-    ON OEC.IdEstadoComercial =
-       EC.Id
-WHERE OEC.IdObra = @Id
-
-end
-go
-
-
-
-
-CREATE PROCEDURE AppData.spListarObraEstadoComercialPorEstadoComercial
-@Id BIGINT
-AS
-BEGIN
-
-SELECT * FROM AppData.ObraEstadoComercial
-    WHERE IdEstadoComercial = @Id
-
+    SET NOCOUNT ON;
+    SELECT OEC.Id, OEC.IdObra, O.Referencia, OEC.IdEstadoComercial,
+           EC.Nombre AS NombreEstadoComercial, EC.Sucesores,
+           OEC.Fecha, OEC.Observaciones, OEC.Activo
+    FROM AppData.ObraEstadoComercial OEC
+    INNER JOIN AppData.Obra O ON O.Id = OEC.IdObra
+    INNER JOIN AppData.EstadoComercial EC ON OEC.IdEstadoComercial = EC.Id
+    WHERE OEC.IdObra = @Id
+    ORDER BY OEC.Fecha DESC, OEC.Id DESC;
 END
 GO
 
@@ -1207,14 +1124,20 @@ SET NOCOUNT ON
 
     UPDATE AppData.ObraEstadoComercial
         SET Activo = 0
+    WHERE Id = @Id
 
-    SELECT 1 AS OK,
-        'ESTADO ACTUALIZADO CORRECTAMENTE' AS MESSAGE
+    IF @@ROWCOUNT = 0
+        THROW 50005, 'Movimiento de estado inexistente.', 1;
+
+    SELECT @Id AS Id,
+        CAST(1 AS BIT) AS OK,
+        'ESTADO ELIMINADO CORRECTAMENTE' AS MESSAGE
     END TRY
 
     BEGIN CATCH
-    SELECT 0 AS OK,
-        'NO SE ACTUALIZÓ EL ESTADO' AS MESSAGE
+    SELECT CAST(NULL AS BIGINT) AS Id,
+        CAST(0 AS BIT) AS OK,
+        ERROR_MESSAGE() AS MESSAGE
     END CATCH
 
 END
@@ -1247,9 +1170,10 @@ BEGIN
         SELECT 
             IdObra, 
             IdEstadoComercial,
-            ROW_NUMBER() OVER (PARTITION BY IdObra ORDER BY Id DESC) AS Fila
+            ROW_NUMBER() OVER (PARTITION BY IdObra ORDER BY Fecha DESC, Id DESC) AS Fila
             -- Nota: Si tienes un campo Fecha en esta tabla, es mejor usar ORDER BY FechaAlta DESC
         FROM AppData.ObraEstadoComercial
+        WHERE Activo = 1
     ) AS UltimoEstado 
         ON O.Id = UltimoEstado.IdObra AND UltimoEstado.Fila = 1 -- Filtramos para que solo traiga la última coincidencia
 
@@ -1307,9 +1231,10 @@ BEGIN
         SELECT 
             IdObra, 
             IdEstadoComercial,
-            ROW_NUMBER() OVER (PARTITION BY IdObra ORDER BY Id DESC) AS Fila
+            ROW_NUMBER() OVER (PARTITION BY IdObra ORDER BY Fecha DESC, Id DESC) AS Fila
             -- Nota: Si tienes un campo Fecha en esta tabla, es mejor usar ORDER BY FechaAlta DESC
         FROM AppData.ObraEstadoComercial
+        WHERE Activo = 1
     ) AS UltimoEstado 
         ON O.Id = UltimoEstado.IdObra AND UltimoEstado.Fila = 1 -- Filtramos para que solo traiga la última coincidencia
 
@@ -1362,9 +1287,10 @@ BEGIN
         SELECT 
             IdObra, 
             IdEstadoComercial,
-            ROW_NUMBER() OVER (PARTITION BY IdObra ORDER BY Id DESC) AS Fila
+            ROW_NUMBER() OVER (PARTITION BY IdObra ORDER BY Fecha DESC, Id DESC) AS Fila
 
         FROM AppData.ObraEstadoComercial
+        WHERE Activo = 1
     ) AS UltimoEstado 
         ON O.Id = UltimoEstado.IdObra AND UltimoEstado.Fila = 1 -- Filtramos para que solo traiga la última coincidencia
 
@@ -1410,51 +1336,47 @@ CREATE PROCEDURE AppData.spInsertarObra
     @Referencia NVARCHAR(100),
     @IdMoneda INT,
     @MontoPactado DECIMAL(18,2),
-    @IdSolicitante BIGINT,
+    @IdSolicitante BIGINT = NULL,
     @IdEstadoComercial INT,
-    @FechaAlta DATETIME
+    @FechaAlta DATETIME = NULL,
+    @IdCotizacion BIGINT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    DECLARE @IdObra BIGINT; 
+    DECLARE @IdObra BIGINT;
 
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        INSERT INTO AppData.Obra
-            (IdCliente, Referencia, IdMoneda, MontoPactado, IdSolicitante, FechaAlta)
-        VALUES
-            (@IdCliente, @Referencia, @IdMoneda, @MontoPactado, @IdSolicitante, @FechaAlta);
+        IF @IdCotizacion IS NOT NULL
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM AppData.Cotizacion WHERE Id = @IdCotizacion)
+                THROW 50023, 'Cotización inexistente.', 1;
+            IF EXISTS (SELECT 1 FROM AppData.Cotizacion WHERE Id = @IdCotizacion AND IdCliente <> @IdCliente)
+                THROW 50024, 'La cotización pertenece a otro cliente.', 1;
+            IF EXISTS (SELECT 1 FROM AppData.Cotizacion WHERE Id = @IdCotizacion AND IdObra IS NOT NULL)
+                THROW 50025, 'La cotización ya está vinculada a una obra.', 1;
+        END
 
-        SET @IdObra = SCOPE_IDENTITY();
+        INSERT INTO AppData.Obra (IdCliente, Referencia, IdMoneda, MontoPactado, IdSolicitante, FechaAlta)
+        VALUES (@IdCliente, @Referencia, @IdMoneda, @MontoPactado, @IdSolicitante, COALESCE(@FechaAlta, GETDATE()));
 
-        INSERT INTO AppData.ObraEstadoComercial
-            (IdObra, IdEstadoComercial)
-        VALUES
-            (@IdObra, @IdEstadoComercial);
+        SET @IdObra = CONVERT(BIGINT, SCOPE_IDENTITY());
+
+        IF @IdCotizacion IS NOT NULL
+            UPDATE AppData.Cotizacion SET IdObra = @IdObra WHERE Id = @IdCotizacion;
+
+        INSERT INTO AppData.ObraEstadoComercial (IdObra, IdEstadoComercial, Observaciones)
+        VALUES (@IdObra, @IdEstadoComercial, 'Estado inicial de la obra.');
 
         COMMIT TRANSACTION;
-
-        SELECT 1 AS OK,
-               'OBRA CREADA CORRECTAMENTE' AS MESSAGE,
-               @IdObra AS IdObra;
-
+        SELECT @IdObra AS Id, CAST(1 AS BIT) AS Ok, 'Obra creada correctamente.' AS Mensaje;
     END TRY
     BEGIN CATCH
-        
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-
-        -- Devolvemos el mensaje de error junto con el error real de SQL Server (opcional pero muy útil)
-        SELECT 0 AS OK,
-               'NO SE PUDO CREAR LA OBRA: ' + ERROR_MESSAGE() AS MESSAGE,
-               0 AS IdObra;
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        SELECT CAST(NULL AS BIGINT) AS Id, CAST(0 AS BIT) AS Ok, ERROR_MESSAGE() AS Mensaje;
     END CATCH
 END
-
-
-
 GO
 CREATE PROCEDURE AppData.spModificarObra
 @Id BIGINT,
@@ -1478,14 +1400,20 @@ BEGIN
         MontoPactado = @MontoPactado,
         IdSolicitante = @IdSolicitante,
         FechaAlta = @FechaAlta
+    WHERE Id = @Id
 
-    SELECT 1 AS OK,
+    IF @@ROWCOUNT = 0
+        THROW 50006, 'Obra inexistente.', 1;
+
+    SELECT @Id AS Id,
+        CAST(1 AS BIT) AS OK,
         'OBRA MODIFICADA CORRECTAMENTE' AS MESSAGE
 
     END TRY
     BEGIN CATCH
-    SELECT 0 AS OK,
-        'NO SE PUDO MODIFICAR LA OBRA'
+    SELECT CAST(NULL AS BIGINT) AS Id,
+        CAST(0 AS BIT) AS OK,
+        ERROR_MESSAGE() AS MESSAGE
     END CATCH
 
 END
@@ -1532,6 +1460,8 @@ BEGIN
 
     SET NOCOUNT ON
 
+    DECLARE @IdOrdenGenerada BIGINT;
+
     BEGIN TRY
 
     INSERT INTO AppData.OrdenDeCompra
@@ -1553,12 +1483,16 @@ BEGIN
         @Monto,
         @IVA)
 
-    SELECT 1 AS OK,
+    SET @IdOrdenGenerada = CONVERT(BIGINT, SCOPE_IDENTITY());
+
+    SELECT @IdOrdenGenerada AS Id,
+        CAST(1 AS BIT) AS OK,
         'ORDEN DE COMPRA INSERTADA CORRECTAMENTE' AS MESSAGE
     END TRY
     BEGIN CATCH
-    SELECT 0 AS OK,
-        'ORDEN DE COMPRA NO SE PUDO INSERTAR' AS MESSAGE
+    SELECT CAST(NULL AS BIGINT) AS Id,
+        CAST(0 AS BIT) AS OK,
+        ERROR_MESSAGE() AS MESSAGE
     END CATCH
 
 END
@@ -1591,13 +1525,19 @@ BEGIN
         IdMoneda = @IdMoneda,
         Monto = @Monto,
         IVA = @IVA
+    WHERE Id = @Id
 
-    SELECT 1 AS OK,
+    IF @@ROWCOUNT = 0
+        THROW 50007, 'Orden de compra inexistente.', 1;
+
+    SELECT @Id AS Id,
+        CAST(1 AS BIT) AS OK,
         'ORDEN DE COMPRA MODIFICADA' AS MESSAGE
     END TRY
     BEGIN CATCH
-    SELECT 0 AS OK,
-        'ORDEN DE COMPRA NO SE MODIFICÓ' AS MESSAGE
+    SELECT CAST(NULL AS BIGINT) AS Id,
+        CAST(0 AS BIT) AS OK,
+        ERROR_MESSAGE() AS MESSAGE
 
     END CATCH
 
@@ -1607,111 +1547,71 @@ GO
 
 CREATE PROCEDURE AppData.spInsertarCotizacion
 (
-    @Prefijo INT,
-    @Numero INT,
-    @IdCliente BIGINT,
-    @IdObra BIGINT = NULL,
-    @IdSolicitante BIGINT = NULL,
-    @Referencia NVARCHAR(100),
-    @Descripcion NVARCHAR(1000) = NULL,
-    @IdMoneda INT, 
-    @Monto DECIMAL(18,2),
-    @Formal BIT = 1
+    @Prefijo INT, @Numero INT, @IdCliente BIGINT, @IdObra BIGINT = NULL,
+    @IdSolicitante BIGINT = NULL, @Referencia NVARCHAR(100),
+    @Descripcion NVARCHAR(1000) = NULL, @IdMoneda INT,
+    @Monto DECIMAL(18,2), @Formal BIT = 1, @Fecha DATETIME = NULL
 )
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    INSERT INTO AppData.Cotizacion
-    (
-        Prefijo,
-        Numero,
-        IdCliente,
-        IdObra,
-        IdSolicitante,
-        Referencia,
-        Descripcion,
-        IdMoneda,
-        Monto,
-        Formal
-    )
-    VALUES
-    (
-        @Prefijo,
-        @Numero,
-        @IdCliente,
-        @IdObra,
-        @IdSolicitante,
-        @Referencia,
-        @Descripcion,
-        @IdMoneda,
-        @Monto,
-        @Formal
-    );
-
-    SELECT SCOPE_IDENTITY() AS IdGenerado;
+    DECLARE @IdCotizacionGenerada BIGINT;
+    BEGIN TRY
+        INSERT INTO AppData.Cotizacion
+            (Prefijo, Numero, IdCliente, IdObra, IdSolicitante, Referencia, Descripcion, Fecha, IdMoneda, Monto, Formal)
+        VALUES
+            (@Prefijo, @Numero, @IdCliente, @IdObra, @IdSolicitante, @Referencia, @Descripcion, COALESCE(@Fecha, GETDATE()), @IdMoneda, @Monto, @Formal);
+        SET @IdCotizacionGenerada = CONVERT(BIGINT, SCOPE_IDENTITY());
+        SELECT @IdCotizacionGenerada AS Id, CAST(1 AS BIT) AS Ok, 'Cotización insertada correctamente.' AS Mensaje;
+    END TRY
+    BEGIN CATCH
+        SELECT CAST(NULL AS BIGINT) AS Id, CAST(0 AS BIT) AS Ok, ERROR_MESSAGE() AS Mensaje;
+    END CATCH
 END
 GO
 
 
-CREATE PROCEDURE AppData.spListarCotizacionId
-(
-    @Id BIGINT
-)
+CREATE PROCEDURE AppData.spListarCotizacionId @Id BIGINT
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    SELECT
-        Id,
-        Prefijo,
-        Numero,
-        IdCliente,
-        IdObra,
-        IdSolicitante,
-        Referencia,
-        Descripcion,
-        Fecha,
-        IdMoneda,
-        Monto,
-        Formal
-    FROM AppData.Cotizacion
-    WHERE Id = @Id;
+    SELECT C.Id, C.Prefijo, C.Numero, C.IdCliente, CL.Nombre AS NombreCliente,
+           C.IdObra, C.IdSolicitante, S.Nombre AS NombreSolicitante,
+           C.Referencia, C.Descripcion, C.Fecha, C.IdMoneda, M.Nombre AS Moneda,
+           C.Monto, C.Formal
+    FROM AppData.Cotizacion C
+    INNER JOIN AppData.Cliente CL ON CL.Id = C.IdCliente
+    LEFT JOIN AppData.Solicitante S ON S.Id = C.IdSolicitante
+    INNER JOIN AppData.Moneda M ON M.Id = C.IdMoneda
+    WHERE C.Id = @Id;
 END
 GO
 
 
 CREATE PROCEDURE AppData.spModificarCotizacion
 (
-    @Id INT,
-    @Prefijo INT,
-    @Numero INT,
-    @IdCliente BIGINT,
-    @IdObra BIGINT = NULL,
-    @IdSolicitante BIGINT = NULL,
-    @Referencia NVARCHAR(100),
-    @Descripcion NVARCHAR(1000) = NULL,
-    @IdMoneda INT,
-    @Monto DECIMAL(18,2),
-    @Formal BIT
+    @Id BIGINT, @Prefijo INT, @Numero INT, @IdCliente BIGINT, @IdObra BIGINT = NULL,
+    @IdSolicitante BIGINT = NULL, @Referencia NVARCHAR(100),
+    @Descripcion NVARCHAR(1000) = NULL, @IdMoneda INT,
+    @Monto DECIMAL(18,2), @Formal BIT, @Fecha DATETIME = NULL
 )
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    UPDATE AppData.Cotizacion
-    SET
-        Prefijo = @Prefijo,
-        Numero = @Numero,
-        IdCliente = @IdCliente,
-        IdObra = @IdObra,
-        IdSolicitante = @IdSolicitante,
-        Referencia = @Referencia,
-        Descripcion = @Descripcion,
-        IdMoneda = @IdMoneda,
-        Monto = @Monto,
-        Formal = @Formal
-    WHERE Id = @Id;
+    BEGIN TRY
+        UPDATE AppData.Cotizacion SET
+            Prefijo = @Prefijo, Numero = @Numero, IdCliente = @IdCliente,
+            IdObra = @IdObra, IdSolicitante = @IdSolicitante,
+            Referencia = @Referencia, Descripcion = @Descripcion,
+            IdMoneda = @IdMoneda, Monto = @Monto, Formal = @Formal,
+            Fecha = COALESCE(@Fecha, Fecha)
+        WHERE Id = @Id;
+        IF @@ROWCOUNT = 0 THROW 50008, 'Cotización inexistente.', 1;
+        SELECT @Id AS Id, CAST(1 AS BIT) AS Ok, 'Cotización modificada correctamente.' AS Mensaje;
+    END TRY
+    BEGIN CATCH
+        SELECT CAST(NULL AS BIGINT) AS Id, CAST(0 AS BIT) AS Ok, ERROR_MESSAGE() AS Mensaje;
+    END CATCH
 END
 GO
 
@@ -1724,8 +1624,23 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+    BEGIN TRY
+
     DELETE FROM AppData.Cotizacion
     WHERE Id = @Id;
+
+    IF @@ROWCOUNT = 0
+        THROW 50009, 'Cotizacion inexistente.', 1;
+
+    SELECT @Id AS Id,
+           CAST(1 AS BIT) AS OK,
+           'COTIZACION ELIMINADA CORRECTAMENTE' AS MESSAGE;
+    END TRY
+    BEGIN CATCH
+        SELECT CAST(NULL AS BIGINT) AS Id,
+               CAST(0 AS BIT) AS OK,
+               ERROR_MESSAGE() AS MESSAGE;
+    END CATCH
 END
 GO
 
@@ -1758,125 +1673,34 @@ GO
 
 CREATE PROCEDURE AppData.spListarCotizaciones
 (
-    @IdCliente BIGINT = NULL,
-    @IdObra BIGINT = NULL,
-
-    @FechaDesde DATETIME = NULL,
-    @FechaHasta DATETIME = NULL,
-
-    @Page INT = 1,
-    @PageSize INT = 50
+    @IdCliente BIGINT = NULL, @IdObra BIGINT = NULL,
+    @FechaDesde DATETIME = NULL, @FechaHasta DATETIME = NULL,
+    @Page INT = 1, @PageSize INT = 50
 )
 AS
 BEGIN
-
     SET NOCOUNT ON;
-
-
-    /* =====================================================
-       DATOS PAGINADOS
-       ===================================================== */
-
-    SELECT
-        C.Id,
-        C.Prefijo,
-        C.Numero,
-        C.Referencia,
-
-        CL.Id AS IdCliente,
-        CL.Nombre AS NombreCliente,
-
-        O.Id AS IdObra,
-
-        S.Nombre AS NombreSolicitante,
-
-        C.Fecha,
-        C.Monto,
-        M.Nombre AS Moneda
-
+    SELECT C.Id, C.Prefijo, C.Numero, C.Referencia, C.Descripcion, C.Formal,
+           CL.Id AS IdCliente, CL.Nombre AS NombreCliente,
+           C.IdObra, C.IdSolicitante, S.Nombre AS NombreSolicitante,
+           C.Fecha, C.IdMoneda, C.Monto, M.Nombre AS Moneda
     FROM AppData.Cotizacion C
+    INNER JOIN AppData.Cliente CL ON CL.Id = C.IdCliente
+    LEFT JOIN AppData.Solicitante S ON S.Id = C.IdSolicitante
+    INNER JOIN AppData.Moneda M ON M.Id = C.IdMoneda
+    WHERE (@IdCliente IS NULL OR C.IdCliente = @IdCliente)
+      AND (@IdObra IS NULL OR C.IdObra = @IdObra)
+      AND (@FechaDesde IS NULL OR C.Fecha >= @FechaDesde)
+      AND (@FechaHasta IS NULL OR C.Fecha < DATEADD(DAY, 1, @FechaHasta))
+    ORDER BY C.Fecha DESC, C.Id DESC
+    OFFSET (@Page - 1) * @PageSize ROWS FETCH NEXT @PageSize ROWS ONLY;
 
-    LEFT JOIN AppData.Obra O
-        ON O.Id = C.IdObra
-
-    INNER JOIN AppData.Cliente CL
-        ON CL.Id = C.IdCliente
-
-    LEFT JOIN AppData.Solicitante S
-        ON S.Id = C.IdSolicitante
-
-    INNER JOIN AppData.Moneda AS M
-        ON M.Id = C.IdMoneda
-
-    WHERE
-
-        (@IdCliente IS NULL
-         OR CL.Id = @IdCliente)
-
-        AND
-
-        (@IdObra IS NULL
-         OR O.Id = @IdObra)
-
-        AND
-
-        (@FechaDesde IS NULL
-         OR C.Fecha >= @FechaDesde)
-
-        AND
-
-        (@FechaHasta IS NULL
-         OR C.Fecha < DATEADD(DAY, 1, @FechaHasta))
-
-    ORDER BY
-        C.Fecha DESC,
-        C.Id DESC
-
-    OFFSET
-        (@Page - 1) * @PageSize ROWS
-
-    FETCH NEXT
-        @PageSize ROWS ONLY;
-
-
-    /* =====================================================
-       TOTAL DE REGISTROS
-       ===================================================== */
-
-    SELECT
-        COUNT(*)
-
+    SELECT COUNT(*)
     FROM AppData.Cotizacion C
-
-    LEFT JOIN AppData.Obra O
-        ON C.IdObra = O.Id
-
-    INNER JOIN AppData.Cliente CL
-        ON CL.Id = C.IdCliente
-
-    LEFT JOIN AppData.Solicitante S
-        ON C.IdSolicitante = S.Id
-
-    WHERE
-
-        (@IdCliente IS NULL
-         OR CL.Id = @IdCliente)
-
-        AND
-
-        (@IdObra IS NULL
-         OR O.Id = @IdObra)
-
-        AND
-
-        (@FechaDesde IS NULL
-         OR C.Fecha >= @FechaDesde)
-
-        AND
-
-        (@FechaHasta IS NULL
-         OR C.Fecha < DATEADD(DAY, 1, @FechaHasta));
-
+    WHERE (@IdCliente IS NULL OR C.IdCliente = @IdCliente)
+      AND (@IdObra IS NULL OR C.IdObra = @IdObra)
+      AND (@FechaDesde IS NULL OR C.Fecha >= @FechaDesde)
+      AND (@FechaHasta IS NULL OR C.Fecha < DATEADD(DAY, 1, @FechaHasta));
 END
 GO
 
@@ -2111,6 +1935,7 @@ WITH UltimoEstado AS (
                 OEC.Id DESC
         ) AS RN
     FROM AppData.ObraEstadoComercial OEC
+    WHERE OEC.Activo = 1
 ),
 ObrasConOC AS (
     -- Evitamos subconsultas trayendo las obras con OC de forma plana
@@ -2372,9 +2197,6 @@ GO
 GRANT EXECUTE ON AppData.splistarObraEstadoComercialPorObra TO RolUsuario;
 GO
 
-GRANT EXECUTE ON AppData.splistarObraEstadoComercialPorEstadoComercial TO RolUsuario;
-GO
-
 GRANT EXECUTE ON AppData.splistarCotizacionId TO RolUsuario;
 GO
 
@@ -2387,11 +2209,6 @@ GO
 GRANT EXECUTE ON AppData.spEliminarSolicitante TO RolUsuario;
 GO
 
-GRANT EXECUTE ON AppData.VistaEstadisticasCotizaciones TO RolUsuario;
-GO
-
-GRANT EXECUTE ON AppData.VistaEstadisticasObras TO RolUsuario;
-GO
 
 
 

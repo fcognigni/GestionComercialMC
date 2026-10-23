@@ -33,34 +33,43 @@ namespace APIGesCom.Controllers
             );
         }
 
-        [HttpGet("cotizacion /{id}")]
+        [HttpGet("{id}")]
         public ActionResult <Cotizacion> ListarPorId(long Id)
         {
             var cotizacion = _cotizacionService.ListarPorId(Id);
 
-            return Ok(cotizacion);
+            return cotizacion == null
+                ? NotFound(ResultadoOperacion.Fallo("NO_ENCONTRADO", "Cotización inexistente."))
+                : Ok(cotizacion);
         }
 
 
         [HttpPost]
-        public ActionResult Insertar([FromBody] Cotizacion cotizacion)
+        public async Task<ActionResult> Insertar([FromBody] Cotizacion cotizacion)
         {
-            var resultado =
-                _cotizacionService.Insertar(cotizacion);
-
-            return Ok();
+            return this.ResponderOperacion(
+                await _cotizacionService.InsertarAsync(cotizacion),
+                creado: true);
         }
 
         [HttpPut]
-        public ActionResult Modificar([FromBody] Cotizacion cotizacion)
+        public async Task<ActionResult> Modificar([FromBody] Cotizacion cotizacion)
         {
-            bool resultado =
-                _cotizacionService.Modificar(cotizacion);
+            if (cotizacion.Id <= 0)
+                return BadRequest(ResultadoOperacion.Fallo("VALIDACION", "Datos de cotización inválidos."));
 
-            if (!resultado)
-                return BadRequest();
+            return this.ResponderOperacion(
+                await _cotizacionService.ModificarAsync(cotizacion));
+        }
 
-            return Ok();
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> Eliminar(long id)
+        {
+            if (id <= 0)
+                return BadRequest(ResultadoOperacion.Fallo("VALIDACION", "El ID de la cotización no es válido."));
+
+            return this.ResponderOperacion(
+                await _cotizacionService.EliminarAsync(id));
         }
     }
 }

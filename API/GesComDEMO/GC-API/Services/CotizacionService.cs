@@ -1,4 +1,4 @@
-﻿using APIGesCom.Models;
+using APIGesCom.Models;
 using GC_API.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
@@ -12,15 +12,15 @@ public class CotizacionService : ICotizacionService
         _config = config;
     }
 
-    public long Insertar(Cotizacion cotizacion)
+    public async Task<ResultadoOperacion> InsertarAsync(Cotizacion cotizacion)
     {
         string connString =
             _config.GetConnectionString("GesComDemo");
 
-        using SqlConnection conn =
+        await using SqlConnection conn =
             new SqlConnection(connString);
 
-        using SqlCommand cmd =
+        await using SqlCommand cmd =
             new SqlCommand("AppData.spInsertarCotizacion", conn);
 
         cmd.CommandType = CommandType.StoredProcedure;
@@ -35,10 +35,9 @@ public class CotizacionService : ICotizacionService
         cmd.Parameters.AddWithValue("@IdMoneda", (object?)cotizacion.IdMoneda ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@Monto", cotizacion.Monto);
         cmd.Parameters.AddWithValue("@Formal", cotizacion.Formal);
+        cmd.Parameters.AddWithValue("@Fecha", (object?)cotizacion.Fecha ?? DBNull.Value);
 
-        conn.Open();
-
-        return Convert.ToInt64(cmd.ExecuteScalar());
+        return await APIGesCom.Services.ResultadoOperacionSql.EjecutarAsync(cmd);
     }
 
     public CotizacionDTO? ListarPorId(long id)
@@ -167,15 +166,15 @@ public class CotizacionService : ICotizacionService
     }
 
 
-    public bool Modificar(Cotizacion cotizacion)
+    public async Task<ResultadoOperacion> ModificarAsync(Cotizacion cotizacion)
     {
         string connString =
             _config.GetConnectionString("GesComDemo");
 
-        using SqlConnection conn =
+        await using SqlConnection conn =
             new SqlConnection(connString);
 
-        using SqlCommand cmd =
+        await using SqlCommand cmd =
             new SqlCommand("AppData.spModificarCotizacion", conn);
 
         cmd.CommandType = CommandType.StoredProcedure;
@@ -188,53 +187,48 @@ public class CotizacionService : ICotizacionService
         cmd.Parameters.AddWithValue("@IdSolicitante", (object?)cotizacion.IdSolicitante ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@Referencia", cotizacion.Referencia);
         cmd.Parameters.AddWithValue("@Descripcion", (object?)cotizacion.Descripcion ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@IdMoneda", cotizacion.IdMoneda);
         cmd.Parameters.AddWithValue("@Monto", cotizacion.Monto);
         cmd.Parameters.AddWithValue("@Formal", cotizacion.Formal);
+        cmd.Parameters.AddWithValue("@Fecha", (object?)cotizacion.Fecha ?? DBNull.Value);
 
-        conn.Open();
-
-        return cmd.ExecuteNonQuery() > 0;
+        return await APIGesCom.Services.ResultadoOperacionSql.EjecutarAsync(cmd);
     }
 
-    public bool Eliminar(long id)
+    public async Task<ResultadoOperacion> EliminarAsync(long id)
     {
         string connString =
             _config.GetConnectionString("GesComDemo");
 
-        using SqlConnection conn =
+        await using SqlConnection conn =
             new SqlConnection(connString);
 
-        using SqlCommand cmd =
+        await using SqlCommand cmd =
             new SqlCommand("AppData.spEliminarCotizacion", conn);
 
         cmd.CommandType = CommandType.StoredProcedure;
 
         cmd.Parameters.AddWithValue("@Id", id);
 
-        conn.Open();
-
-        return cmd.ExecuteNonQuery() > 0;
+        return await APIGesCom.Services.ResultadoOperacionSql.EjecutarAsync(cmd);
     }
 
-    private static CotizacionDTO Mapear(SqlDataReader reader)
+    private static CotizacionDTO Mapear(SqlDataReader reader) => new()
     {
-        return new CotizacionDTO
-        {
-            Id = Convert.ToInt64(reader["Id"]),
-            Prefijo = Convert.ToInt32(reader["Prefijo"]),
-            Numero = Convert.ToInt32(reader["Numero"]),
-            IdCliente = Convert.ToInt64(reader["IdCliente"]),
-            NombreCliente = reader["NombreCliente"].ToString(),
-            IdObra = reader["IdObra"] == DBNull.Value
-                ? null
-                : Convert.ToInt64(reader["IdObra"]),
-            NombreSolicitante = reader["IdSolicitante"] == DBNull.Value
-                ? null
-                : reader["IdSolicitante"].ToString(),
-            Referencia = reader["Referencia"].ToString()!,
-            Fecha = Convert.ToDateTime(reader["Fecha"]),
-            Moneda = reader["IdMoneda"].ToString(),
-            Monto = Convert.ToDecimal(reader["Monto"]),
-        };
-    }
+        Id = Convert.ToInt64(reader["Id"]),
+        Prefijo = Convert.ToInt32(reader["Prefijo"]),
+        Numero = Convert.ToInt32(reader["Numero"]),
+        IdCliente = Convert.ToInt64(reader["IdCliente"]),
+        NombreCliente = reader["NombreCliente"].ToString() ?? string.Empty,
+        IdObra = reader["IdObra"] == DBNull.Value ? null : Convert.ToInt64(reader["IdObra"]),
+        IdSolicitante = reader["IdSolicitante"] == DBNull.Value ? null : Convert.ToInt64(reader["IdSolicitante"]),
+        NombreSolicitante = reader["NombreSolicitante"] == DBNull.Value ? null : reader["NombreSolicitante"].ToString(),
+        Referencia = reader["Referencia"].ToString() ?? string.Empty,
+        Descripcion = reader["Descripcion"] == DBNull.Value ? null : reader["Descripcion"].ToString(),
+        Fecha = Convert.ToDateTime(reader["Fecha"]),
+        IdMoneda = Convert.ToInt32(reader["IdMoneda"]),
+        Moneda = reader["Moneda"].ToString() ?? string.Empty,
+        Monto = Convert.ToDecimal(reader["Monto"]),
+        Formal = Convert.ToBoolean(reader["Formal"])
+    };
 }

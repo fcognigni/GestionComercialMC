@@ -1,4 +1,4 @@
-﻿using APIGesCom.Models;
+using APIGesCom.Models;
 using GC_API.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
@@ -73,7 +73,7 @@ namespace APIGesCom.Services
                         ? null
                         : Convert.ToDateTime(reader["Fecha"]),
                     Moneda = reader["Moneda"].ToString(),
-                    MontoPactado = Convert.ToSingle(reader["Monto"]),
+                    MontoPactado = Convert.ToDecimal(reader["Monto"]),
                     IdSolicitante =
                         reader["IdSolicitante"] == DBNull.Value
                                 ? null
@@ -88,51 +88,44 @@ namespace APIGesCom.Services
             return lista;
         }
 
-        public long Insertar(Obra obra, int id)
+        public async Task<ResultadoOperacion> InsertarAsync(Obra obra)
         {
             string connString =
                 _config.GetConnectionString("GesComDemo");
 
-            using SqlConnection conn =
+            await using SqlConnection conn =
                 new SqlConnection(connString);
 
-            using SqlCommand cmd =
+            await using SqlCommand cmd =
                 new SqlCommand("AppData.spInsertarObra", conn);
 
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Parameters.AddWithValue("@Referencia", obra.Referencia);
             cmd.Parameters.AddWithValue("@IdCliente", obra.IdCliente);
-            cmd.Parameters.AddWithValue("@IdMoneda", obra.IdMoneda);
+            cmd.Parameters.AddWithValue("@IdMoneda", (object?)obra.IdMoneda ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@MontoPactado",
                 obra.MontoPactado);
             cmd.Parameters.AddWithValue("@IdSolicitante",
                 (object?)obra.IdSolicitante ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@IdEstadoComercial",
-                id);
+            cmd.Parameters.AddWithValue("@IdEstadoComercial", obra.IdEstadoComercial);
+            cmd.Parameters.AddWithValue("@IdCotizacion", (object?)obra.IdCotizacion ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@FechaAlta",
+                (object?)obra.FechaAlta ?? DBNull.Value);
 
-            conn.Open();
-
-            object result = cmd.ExecuteScalar();
-
-            if (result != null && result != DBNull.Value)
-            {
-                return Convert.ToInt64(result);
-            }
-
-            return 0;
+            return await ResultadoOperacionSql.EjecutarAsync(cmd);
 
         }
 
-        public bool Modificar(Obra obra)
+        public async Task<ResultadoOperacion> ModificarAsync(Obra obra)
         {
             string connString =
                 _config.GetConnectionString("GesComDemo");
 
-            using SqlConnection conn =
+            await using SqlConnection conn =
                 new SqlConnection(connString);
 
-            using SqlCommand cmd =
+            await using SqlCommand cmd =
                 new SqlCommand("AppData.spModificarObra", conn);
 
             cmd.CommandType = CommandType.StoredProcedure;
@@ -151,29 +144,25 @@ namespace APIGesCom.Services
             cmd.Parameters.AddWithValue("@IdSolicitante",
                 obra.IdSolicitante);
 
-            conn.Open();
-
-            return cmd.ExecuteNonQuery() > 0;
+            return await ResultadoOperacionSql.EjecutarAsync(cmd);
         }
 
-        public bool Eliminar(long id)
+        public async Task<ResultadoOperacion> EliminarAsync(long id)
         {
             string connString =
                 _config.GetConnectionString("GesComDemo");
 
-            using SqlConnection conn =
+            await using SqlConnection conn =
                 new SqlConnection(connString);
 
-            using SqlCommand cmd =
+            await using SqlCommand cmd =
                 new SqlCommand("AppData.spEliminarObra", conn);
 
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Parameters.AddWithValue("@Id", id);
 
-            conn.Open();
-
-            return cmd.ExecuteNonQuery() > 0;
+            return await ResultadoOperacionSql.EjecutarAsync(cmd);
         }
     }
 }

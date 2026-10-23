@@ -12,10 +12,10 @@ namespace APIGesCom.Services
             ObraEstadoComercialFiltro filtro
             );
 
-        Task<int>
+        Task<ResultadoOperacion>
             InsertarAsync(ObraEstadoComercial estado);
 
-        Task<bool>
+        Task<ResultadoOperacion>
             EliminarAsync(long id);
     }
 }

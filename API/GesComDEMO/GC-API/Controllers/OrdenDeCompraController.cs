@@ -17,54 +17,47 @@ namespace APIGesCom.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<OrdenDeCompra>>
+        public async Task<ActionResult<IEnumerable<OrdenDeCompra>>>
             ListarTodos()
         {
-            return Ok(_service.ListarTodos());
+            return Ok(await _service.ListarTodos());
         }
 
         [HttpGet("{id}")]
-        public ActionResult<OrdenDeCompra> ListarPorId(long id)
+        public async Task<ActionResult<OrdenDeCompra>> ListarPorId(long id)
         {
-            return Ok(_service.ListarPorId(id));
+            var orden = await _service.ListarPorId(id);
+            return orden == null
+                ? NotFound(ResultadoOperacion.Fallo("NO_ENCONTRADO", "Orden de compra inexistente."))
+                : Ok(orden);
         }
 
         [HttpPost]
-        public ActionResult Insertar(
+        public async Task<ActionResult> Insertar(
             [FromBody] OrdenDeCompra orden)
         {
-            bool resultado =
-                _service.Insertar(orden);
-
-            if (!resultado)
-                return BadRequest();
-
-            return Ok();
+            return this.ResponderOperacion(
+                await _service.InsertarAsync(orden),
+                creado: true);
         }
 
         [HttpPut]
-        public ActionResult Modificar(
+        public async Task<ActionResult> Modificar(
             [FromBody] OrdenDeCompra orden)
         {
-            bool resultado =
-                _service.Modificar(orden);
+            if (orden.Id <= 0)
+                return BadRequest(ResultadoOperacion.Fallo("VALIDACION", "Datos de orden de compra inválidos."));
 
-            if (!resultado)
-                return BadRequest();
-
-            return Ok();
+            return this.ResponderOperacion(await _service.ModificarAsync(orden));
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Eliminar(long id)
+        public async Task<ActionResult> Eliminar(long id)
         {
-            bool resultado =
-                _service.Eliminar(id);
+            if (id <= 0)
+                return BadRequest(ResultadoOperacion.Fallo("VALIDACION", "El ID de la orden de compra no es válido."));
 
-            if (!resultado)
-                return BadRequest();
-
-            return Ok();
+            return this.ResponderOperacion(await _service.EliminarAsync(id));
         }
     }
 }

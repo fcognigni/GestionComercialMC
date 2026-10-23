@@ -1,237 +1,57 @@
-﻿using APIGesCom.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+using APIGesCom.Models;
 using Microsoft.Data.SqlClient;
-using Microsoft.IdentityModel.Tokens;
 using System.Data;
 
-namespace APIGesCom.Services
+namespace APIGesCom.Services;
 
+public class SolicitanteService : ISolicitanteService
 {
-    public class SolicitanteService : ISolicitanteService
+    private readonly IConfiguration _config;
+    public SolicitanteService(IConfiguration config) => _config = config;
+
+    public List<Solicitante> ListarTodos()
     {
-
-        private readonly IConfiguration _config;
-
-        public SolicitanteService(IConfiguration config)
-        {
-            _config = config;
-        }
-
-        public List<Solicitante> ListarTodos()
-        {
-
-            List<Solicitante> lista = new List<Solicitante>();
-
-            string connString =
-                _config.GetConnectionString("GesComDemo");
-
-            using SqlConnection conn =
-                    new SqlConnection(connString);
-
-            using SqlCommand cmd =
-                    new SqlCommand("AppData.spListarSolicitante", conn);
-
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            conn.Open();
-
-            using SqlDataReader reader = cmd.ExecuteReader();
-
-            while (reader.Read())
-            {
-
-                Solicitante solicitante = new Solicitante();
-
-                solicitante.Id = Convert.ToInt32(reader["ID"]);
-                solicitante.Nombre = reader["Nombre"].ToString();
-                solicitante.IdCliente = Convert.ToInt64(reader["IdCliente"]);
-                solicitante.Telefono = reader["Telefono"].ToString();
-                solicitante.Email = reader["Email"].ToString();
-
-
-                lista.Add(solicitante);
-
-            }
-
-            return lista;
-        }
-
-        public Solicitante? ListarPorId(long id)
-        {
-            string connString =
-                _config.GetConnectionString("GesComDemo");
-
-            using SqlConnection conn =
-                new SqlConnection(connString);
-
-            using SqlCommand cmd =
-                new SqlCommand("AppData.spListarSolicitanteId", conn);
-
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            cmd.Parameters.AddWithValue("@Id", id);
-
-            conn.Open();
-
-            using SqlDataReader reader =
-                cmd.ExecuteReader();
-
-            if (reader.Read()) {
-
-                Solicitante S = new Solicitante();
-
-                S.Id = Convert.ToInt32(reader["ID"]);
-                S.Nombre = reader["Nombre"].ToString();
-                S.IdCliente = Convert.ToInt64(reader["IdCliente"]);
-                S.Telefono = reader["Telefono"].ToString();
-                S.Email = reader["Email"].ToString();
-
-                return S;
-            }
-
-            return null;
-        }
-
-        public bool Insertar(Solicitante solicitante)
-        {
-            string connString =
-                _config.GetConnectionString("GesComDemo");
-
-            using SqlConnection conn =
-                    new SqlConnection(connString);
-
-            using SqlCommand cmd =
-                    new SqlCommand("AppData.spInsertarSolicitante", conn);
-
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            cmd.Parameters.AddWithValue("@Nombre", solicitante.Nombre);
-            cmd.Parameters.AddWithValue("@Email", solicitante.Email ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@Telefono", solicitante.Telefono ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@IdCliente", solicitante.IdCliente);
-
-            conn.Open();
-
-            object resultado = cmd.ExecuteScalar();
-
-            return true;
-        
-
-
-        }
-
-        public async Task<ActionResult> ModificarSolicitante(Solicitante solicitante)
-        {
-            try
-            {
-                string connString =
-                _config.GetConnectionString("GesComDemo");
-
-                using SqlConnection conn =
-                    new SqlConnection(connString);
-                {
-                    await conn.OpenAsync();
-
-                    using (SqlCommand command = new SqlCommand(
-                        "AppData.spModificarSolicitante",
-                        conn))
-                    {
-                        command.CommandType = CommandType.StoredProcedure;
-
-
-                        command.Parameters.AddWithValue("@Id", solicitante.Id);
-                        command.Parameters.AddWithValue("@Nombre", solicitante.Nombre);
-                        command.Parameters.AddWithValue("@IdCliente", solicitante.IdCliente);
-                        command.Parameters.AddWithValue("@Telefono",
-                            (object?)solicitante.Telefono ?? DBNull.Value);
-
-                        command.Parameters.AddWithValue("@Email",
-                            (object?)solicitante.Email ?? DBNull.Value);
-
-
-                        command.ExecuteNonQueryAsync();
-                        
-                            }
-
-                    
-                        }
-                    
-                
-        return new OkResult();
+        var lista = new List<Solicitante>();
+        using var conn = new SqlConnection(_config.GetConnectionString("GesComDemo"));
+        using var cmd = new SqlCommand("AppData.spListarSolicitante", conn) { CommandType = CommandType.StoredProcedure };
+        conn.Open(); using var reader = cmd.ExecuteReader();
+        while (reader.Read()) lista.Add(Mapear(reader));
+        return lista;
     }
-            catch (Exception ex)
-            {
-                return new BadRequestObjectResult(ex.Message);
-}
-        }
 
-        public async Task<ActionResult> EliminarSolicitante(long id)
-        {
-            try
-            {
-                string connString =
-                _config.GetConnectionString("GesComDemo");
+    public Solicitante? ListarPorId(long id)
+    {
+        using var conn = new SqlConnection(_config.GetConnectionString("GesComDemo"));
+        using var cmd = new SqlCommand("AppData.spListarSolicitanteId", conn) { CommandType = CommandType.StoredProcedure };
+        cmd.Parameters.AddWithValue("@Id", id); conn.Open(); using var reader = cmd.ExecuteReader();
+        return reader.Read() ? Mapear(reader) : null;
+    }
 
-                using SqlConnection conn =
-                    new SqlConnection(connString);
-                {
-                    await conn.OpenAsync();
+    public Task<ResultadoOperacion> InsertarAsync(Solicitante solicitante) => EjecutarAsync("AppData.spInsertarSolicitante", command =>
+    {
+        command.Parameters.AddWithValue("@Nombre", solicitante.Nombre); command.Parameters.AddWithValue("@IdCliente", solicitante.IdCliente);
+        command.Parameters.AddWithValue("@Telefono", (object?)solicitante.Telefono ?? DBNull.Value); command.Parameters.AddWithValue("@Email", (object?)solicitante.Email ?? DBNull.Value);
+    });
 
-                    using (SqlCommand command = new SqlCommand(
-                        "AppData.spEliminarSolicitante",
-                        conn))
-                    {
-                        command.CommandType = CommandType.StoredProcedure;
+    public Task<ResultadoOperacion> ModificarAsync(Solicitante solicitante) => EjecutarAsync("AppData.spModificarSolicitante", command =>
+    {
+        command.Parameters.AddWithValue("@Id", solicitante.Id); command.Parameters.AddWithValue("@Nombre", solicitante.Nombre);
+        command.Parameters.AddWithValue("@IdCliente", solicitante.IdCliente); command.Parameters.AddWithValue("@Telefono", (object?)solicitante.Telefono ?? DBNull.Value);
+        command.Parameters.AddWithValue("@Email", (object?)solicitante.Email ?? DBNull.Value);
+    });
 
+    public Task<ResultadoOperacion> EliminarAsync(long id) => EjecutarAsync("AppData.spEliminarSolicitante", command => command.Parameters.AddWithValue("@Id", id));
 
-                        command.Parameters.AddWithValue("@Id", id);
+    private static Solicitante Mapear(SqlDataReader reader) => new()
+    {
+        Id = Convert.ToInt32(reader["Id"]), Nombre = reader["Nombre"].ToString()!, IdCliente = Convert.ToInt64(reader["IdCliente"]),
+        Telefono = reader["Telefono"] == DBNull.Value ? null : reader["Telefono"].ToString(), Email = reader["Email"] == DBNull.Value ? null : reader["Email"].ToString()
+    };
 
-
-
-                        using (SqlDataReader reader =
-                            await command.ExecuteReaderAsync())
-                        {
-                            if (await reader.ReadAsync())
-                            {
-                                bool ok = reader.GetBoolean(
-                                    reader.GetOrdinal("OK")
-                                );
-
-                                string mensaje = reader.GetString(
-                                    reader.GetOrdinal("MENSAJE")
-                                );
-
-
-                                if (ok)
-                                {
-                                    return new OkObjectResult(new
-                                    {
-                                        ok = true,
-                                        mensaje
-                                    });
-                                }
-
-
-                                return new BadRequestObjectResult(new
-                                {
-                                    ok = false,
-                                    mensaje
-                                });
-                            }
-                        }
-                    }
-                }
-
-
-                return new BadRequestObjectResult(
-                    "No se pudo eliminar el solicitante"
-                );
-            }
-            catch (Exception ex)
-            {
-                return new BadRequestObjectResult(ex.Message);
-            }
-        }
+    private async Task<ResultadoOperacion> EjecutarAsync(string procedimiento, Action<SqlCommand> cargarParametros)
+    {
+        await using var conn = new SqlConnection(_config.GetConnectionString("GesComDemo"));
+        await using var command = new SqlCommand(procedimiento, conn) { CommandType = CommandType.StoredProcedure };
+        cargarParametros(command); return await ResultadoOperacionSql.EjecutarAsync(command);
     }
 }

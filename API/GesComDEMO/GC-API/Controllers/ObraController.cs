@@ -1,6 +1,6 @@
-﻿using APIGesCom.Models;
-using GC_API.Models;
+using APIGesCom.Models;
 using APIGesCom.Services;
+using GC_API.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIGesCom.Controllers
@@ -10,62 +10,36 @@ namespace APIGesCom.Controllers
     public class ObraController : ControllerBase
     {
         private readonly IObraService _service;
-
-        public ObraController(IObraService service)
-        {
-            _service = service;
-        }
+        public ObraController(IObraService service) => _service = service;
 
         [HttpGet]
-        public ActionResult<IEnumerable<ObraDTO>>
-            ListarTodos(
-            [FromQuery] ObraFiltro filtro)
-        {
-            var obras = _service.ListarTodos(filtro);
-
-            return Ok(obras);
-        }
+        public ActionResult<IEnumerable<ObraDTO>> ListarTodos([FromQuery] ObraFiltro filtro) => Ok(_service.ListarTodos(filtro));
 
         [HttpPost]
-        public ActionResult Insertar([FromBody] Obra obra, int id)
+        public async Task<ActionResult> Insertar([FromBody] Obra obra)
         {
-            long idObra =
-                _service.Insertar(
-                    obra,
-                    id
-            );
+            if (obra.IdCliente <= 0 || obra.IdEstadoComercial <= 0 || obra.IdMoneda is null or <= 0 || string.IsNullOrWhiteSpace(obra.Referencia) || obra.MontoPactado <= 0)
+                return BadRequest(ResultadoOperacion.Fallo("VALIDACION", "Los datos de la obra son inválidos."));
 
-            if (idObra == 0)
-                return BadRequest();
-
-            return Ok(new
-            {
-                IdObra = idObra
-            });
+            return this.ResponderOperacion(await _service.InsertarAsync(obra), creado: true);
         }
 
         [HttpPut]
-        public ActionResult Modificar([FromBody] Obra obra)
+        public async Task<ActionResult> Modificar([FromBody] Obra obra)
         {
-            bool resultado =
-                _service.Modificar(obra);
+            if (obra.Id <= 0)
+                return BadRequest(ResultadoOperacion.Fallo("VALIDACION", "Datos de obra inválidos."));
 
-            if (!resultado)
-                return BadRequest();
-
-            return Ok();
+            return this.ResponderOperacion(await _service.ModificarAsync(obra));
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Eliminar(long id)
+        public async Task<ActionResult> Eliminar(long id)
         {
-            bool resultado =
-                _service.Eliminar(id);
+            if (id <= 0)
+                return BadRequest(ResultadoOperacion.Fallo("VALIDACION", "El ID de la obra no es válido."));
 
-            if (!resultado)
-                return BadRequest();
-
-            return Ok();
+            return this.ResponderOperacion(await _service.EliminarAsync(id));
         }
     }
 }

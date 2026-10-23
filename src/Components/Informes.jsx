@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import SelectorCliente from "./SelectorCliente";
 import '../Styles/Cardpanel.css'
 
@@ -203,7 +203,7 @@ export default function Informes() {
                 </div>
             )}
 
-            {!loading && totalRegistros.length === 0 && (
+            {!loading && totalRegistros === 0 && (
                 <div className="historial-vacio">
                     No hay historial de estados comerciales aun.
                 </div>
@@ -252,6 +252,8 @@ export default function Informes() {
                             <th>Cliente</th>
                             <th>Estado</th>
                             <th>Observaciones</th>
+                            <th>Fecha</th>
+                            <th>Vigencia</th>
                         </tr>
                     </thead>
 
@@ -259,20 +261,13 @@ export default function Informes() {
 
                         {estados.map(e =>
 
-                            <tr>
-
-                                <td>
-                                    {e.referencia}
-                                </td>
-
-                                <td>
-                                    {e.cliente}
-                                </td>
-
-                                <td>
-                                    {e.nombreEstadoComercial}
-                                </td>
-
+                            <tr key={e.id}>
+                                <td>{e.referencia}</td>
+                                <td>{e.cliente}</td>
+                                <td>{e.nombreEstadoComercial}</td>
+                                <td>{e.observaciones || "Sin observaciones"}</td>
+                                <td>{e.fecha ? new Date(e.fecha).toLocaleString() : ""}</td>
+                                <td>{e.activo === false ? "Anulado" : "Vigente"}</td>
                             </tr>
 
                         )

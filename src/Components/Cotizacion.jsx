@@ -235,8 +235,8 @@ export default function FormCotizacion({
         "* Máximo 1000 caracteres";
     }
 
-    if (!formData.idmoneda) {
-      errores.idmoneda =
+    if (!formData.idMoneda) {
+      errores.idMoneda =
         "elegí la moneda"
     }
 
@@ -278,7 +278,7 @@ export default function FormCotizacion({
       referencia: "",
       descripcion: "",
       fecha: "",
-      idmoneda: "",
+      idMoneda: "",
       monto: "",
       formal: false
     });
@@ -368,8 +368,8 @@ export default function FormCotizacion({
               fecha:
                 formData.fecha,
 
-              idmoneda:
-                formData.idmoneda,
+              idMoneda:
+                formData.idMoneda,
 
               monto:
                 monto,
@@ -721,9 +721,9 @@ export default function FormCotizacion({
           </div>
 
           <div className="form-group col-span-2">
-            <label htmlFor="idmoneda">Moneda</label>
-            <select name="idmoneda"
-              value={formData.idmoneda}
+            <label htmlFor="idMoneda">Moneda</label>
+            <select name="idMoneda"
+              value={formData.idMoneda}
               onChange={handleChange}
               className={
                 errors.idCliente

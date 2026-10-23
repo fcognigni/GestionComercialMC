@@ -1,15 +1,12 @@
-﻿using APIGesCom.Models;
-using Microsoft.AspNetCore.Mvc;
+using APIGesCom.Models;
 
-namespace APIGesCom.Services
+namespace APIGesCom.Services;
+
+public interface ISolicitanteService
 {
-    public interface ISolicitanteService
-    {
-        public List<Solicitante> ListarTodos();
-        public Solicitante? ListarPorId(long id);
-        public bool Insertar(Solicitante solicitante);
-        Task<ActionResult> ModificarSolicitante(Solicitante solicitante);
-
-        Task<ActionResult> EliminarSolicitante(long id);
-    }
+    List<Solicitante> ListarTodos();
+    Solicitante? ListarPorId(long id);
+    Task<ResultadoOperacion> InsertarAsync(Solicitante solicitante);
+    Task<ResultadoOperacion> ModificarAsync(Solicitante solicitante);
+    Task<ResultadoOperacion> EliminarAsync(long id);
 }

@@ -1,153 +1,57 @@
-﻿using APIGesCom.Models;
-using Microsoft.AspNetCore.Mvc;
+using APIGesCom.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
-namespace APIGesCom.Services
+namespace APIGesCom.Services;
+
+public class ClienteService : IClienteService
 {
-    public class ClienteService : IClienteService
+    private readonly IConfiguration _config;
+    public ClienteService(IConfiguration config) => _config = config;
+
+    public List<Cliente> ListarTodos()
     {
-        private readonly IConfiguration _config;
-
-        public ClienteService(IConfiguration config)
+        var lista = new List<Cliente>();
+        using var conn = new SqlConnection(_config.GetConnectionString("GesComDemo"));
+        using var cmd = new SqlCommand("AppData.spListarCliente", conn) { CommandType = CommandType.StoredProcedure };
+        conn.Open();
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
         {
-            _config = config;
-        }
-
-        public List<Cliente> ListarTodos()
-        {
-            List<Cliente> lista = new List<Cliente>();
-
-            string connString =
-                _config.GetConnectionString("GesComDemo");
-
-            using SqlConnection conn =
-                new SqlConnection(connString);
-
-            using SqlCommand cmd =
-                new SqlCommand("AppData.spListarCliente", conn);
-
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            conn.Open();
-
-            using SqlDataReader reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            lista.Add(new Cliente
             {
-                Cliente cliente = new Cliente();
-
-                cliente.Id = Convert.ToInt64(reader["Id"]);
-                cliente.Nombre = reader["Nombre"].ToString();
-                cliente.CUIT = reader["CUIT"].ToString();
-                cliente.Localidad = reader["Localidad"].ToString();
-                cliente.Calle = reader["Calle"].ToString();
-                cliente.Numero = (reader["Numero"]).ToString();
-                cliente.Activo = Convert.ToBoolean(reader["Activo"]);
-
-                lista.Add(cliente);
-            }
-
-            return lista;
+                Id = Convert.ToInt64(reader["Id"]), Nombre = reader["Nombre"].ToString()!,
+                CUIT = reader["CUIT"].ToString()!, Localidad = reader["Localidad"]?.ToString(),
+                Calle = reader["Calle"]?.ToString(), Numero = reader["Numero"]?.ToString(),
+                Activo = Convert.ToBoolean(reader["Activo"])
+            });
         }
+        return lista;
+    }
 
-        public long Insertar(Cliente cliente)
-        {
-            string connString =
-                _config.GetConnectionString("GesComDemo");
+    public Task<ResultadoOperacion> InsertarAsync(Cliente cliente) => EjecutarAsync("AppData.spInsertarCliente", command =>
+    {
+        command.Parameters.Add("@Nombre", SqlDbType.NVarChar, 50).Value = cliente.Nombre;
+        command.Parameters.Add("@CUIT", SqlDbType.VarChar, 11).Value = cliente.CUIT;
+        command.Parameters.Add("@Localidad", SqlDbType.NVarChar, 50).Value = (object?)cliente.Localidad ?? DBNull.Value;
+        command.Parameters.Add("@Calle", SqlDbType.NVarChar, 100).Value = (object?)cliente.Calle ?? DBNull.Value;
+        command.Parameters.Add("@Numero", SqlDbType.NVarChar, 10).Value = (object?)cliente.Numero ?? DBNull.Value;
+    });
 
-            using SqlConnection conn =
-                new SqlConnection(connString);
+    public Task<ResultadoOperacion> ModificarAsync(Cliente cliente) => EjecutarAsync("AppData.spModificarCliente", command =>
+    {
+        command.Parameters.AddWithValue("@Id", cliente.Id); command.Parameters.AddWithValue("@Nombre", cliente.Nombre);
+        command.Parameters.AddWithValue("@CUIT", cliente.CUIT); command.Parameters.AddWithValue("@Localidad", (object?)cliente.Localidad ?? DBNull.Value);
+        command.Parameters.AddWithValue("@Calle", (object?)cliente.Calle ?? DBNull.Value); command.Parameters.AddWithValue("@Numero", (object?)cliente.Numero ?? DBNull.Value);
+    });
 
-            using SqlCommand cmd =
-                new SqlCommand("AppData.spInsertarCliente", conn);
+    public Task<ResultadoOperacion> EliminarAsync(long id) => EjecutarAsync("AppData.spEliminarCliente", command => command.Parameters.AddWithValue("@Id", id));
 
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            cmd.Parameters.
-                Add("@Nombre", SqlDbType.NVarChar, 50).Value = cliente.Nombre;
-            cmd.Parameters.
-                Add("@CUIT", SqlDbType.VarChar, 11).Value = cliente.CUIT;
-            cmd.Parameters.
-                Add("@Localidad", SqlDbType.NVarChar, 50).Value = cliente.Localidad ?? (object)DBNull.Value;
-            cmd.Parameters.
-                Add("@Calle", SqlDbType.NVarChar, 100).Value = cliente.Calle ?? (object)DBNull.Value;
-            cmd.Parameters.Add(
-                "@Numero", SqlDbType.NVarChar, 10).Value = cliente.Numero ?? (object)DBNull.Value;
-
-            conn.Open();
-
-            return Convert.ToInt64(cmd.ExecuteScalar());
-
-        }
-
-        public async Task<ActionResult> ModificarCliente(Cliente cliente)
-        {
-            try
-            {
-                string connString =
-                _config.GetConnectionString("GesComDemo");
-
-                using SqlConnection conn =
-                    new SqlConnection(connString);
-                {
-                    await conn.OpenAsync();
-
-                    using (SqlCommand command = new SqlCommand("AppData.spModificarCliente", conn))
-                    {
-                        command.CommandType = CommandType.StoredProcedure;
-
-                        command.Parameters.AddWithValue("@Id", cliente.Id);
-                        command.Parameters.AddWithValue("@Nombre", cliente.Nombre);
-                        command.Parameters.AddWithValue("@CUIT", cliente.CUIT);
-                        command.Parameters.AddWithValue("@Localidad",
-                            (object?)cliente.Localidad ?? DBNull.Value);
-                        command.Parameters.AddWithValue("@Calle",
-                            (object?)cliente.Calle ?? DBNull.Value);
-                        command.Parameters.AddWithValue("@Numero",
-                            (object?)cliente.Numero ?? DBNull.Value);
-
-                        await command.ExecuteNonQueryAsync();
-                    }
-                }
-
-                return new OkResult();
-            }
-            catch (Exception ex)
-            {
-                return new BadRequestObjectResult(ex.Message);
-            }
-        }
-
-
-        public async Task<ActionResult> EliminarCliente(long id)
-        {
-            try
-            {
-                string connString =
-                _config.GetConnectionString("GesComDemo");
-
-                using SqlConnection conn =
-                    new SqlConnection(connString);
-                {
-                    await conn.OpenAsync();
-
-                    using (SqlCommand command = new SqlCommand("AppData.spEliminarCliente", conn))
-                    {
-                        command.CommandType = CommandType.StoredProcedure;
-
-                        command.Parameters.AddWithValue("@Id", id);
-
-                        await command.ExecuteNonQueryAsync();
-                    }
-                }
-
-                return new OkResult();
-            }
-            catch (Exception ex)
-            {
-                return new BadRequestObjectResult(ex.Message);
-            }
-        }
+    private async Task<ResultadoOperacion> EjecutarAsync(string procedimiento, Action<SqlCommand> cargarParametros)
+    {
+        await using var conn = new SqlConnection(_config.GetConnectionString("GesComDemo"));
+        await using var command = new SqlCommand(procedimiento, conn) { CommandType = CommandType.StoredProcedure };
+        cargarParametros(command);
+        return await ResultadoOperacionSql.EjecutarAsync(command);
     }
 }

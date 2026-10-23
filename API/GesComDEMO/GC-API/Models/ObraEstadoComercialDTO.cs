@@ -1,4 +1,4 @@
-﻿using APIGesCom.Models;
+using APIGesCom.Models;
 using System.Xml.Linq;
 
 namespace GC_API.Models
@@ -12,6 +12,8 @@ namespace GC_API.Models
     public string Sucesores { get; set; }
 
     public string NombreEstadoComercial { get; set; }
+
+    public bool Activo { get; set; }
 
     // 2. Propiedad inteligente que transforma el string en una lista de enteros para el Frontend
     public List<int> SucesoresInt

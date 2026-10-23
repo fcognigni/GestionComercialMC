@@ -148,9 +148,7 @@ export default function WorkflowEstadoComercial({
         );
     }, [obras, formData.idCliente]);
 
-    const ultimoEstado = historialObra.length > 0
-        ? historialObra[0]
-        : null;
+    const ultimoEstado = historialObra.find(estado => estado.activo !== false) || null;
 
 
     const estadoActual = useMemo(() => {

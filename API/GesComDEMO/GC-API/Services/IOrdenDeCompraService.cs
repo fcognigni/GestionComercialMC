@@ -8,10 +8,10 @@ namespace APIGesCom.Services
 
         public Task<OrdenDeCompra?> ListarPorId(long id);
 
-        bool Insertar(OrdenDeCompra orden);
+        Task<ResultadoOperacion> InsertarAsync(OrdenDeCompra orden);
 
-        bool Modificar(OrdenDeCompra orden);
+        Task<ResultadoOperacion> ModificarAsync(OrdenDeCompra orden);
 
-        bool Eliminar(long id);
+        Task<ResultadoOperacion> EliminarAsync(long id);
     }
 }

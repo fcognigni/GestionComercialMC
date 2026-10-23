@@ -153,17 +153,17 @@ namespace APIGesCom.Services
         }
         
 
-        public bool Insertar(OrdenDeCompra orden)
+        public async Task<ResultadoOperacion> InsertarAsync(OrdenDeCompra orden)
         {
             string connString =
                 _config.GetConnectionString("GesComDemo");
 
-            using SqlConnection conn =
+            await using SqlConnection conn =
                 new SqlConnection(connString);
 
-            using SqlCommand cmd =
+            await using SqlCommand cmd =
                 new SqlCommand(
-                    "AppData.spInsertarOrdenDeCompra",
+                    "AppData.spInsertarOrdendeCompra",
                     conn);
 
             cmd.CommandType =
@@ -190,10 +190,6 @@ namespace APIGesCom.Services
                 (object?)orden.IdCotizacion ?? DBNull.Value);
 
             cmd.Parameters.AddWithValue(
-                "@Fecha",
-                (object?)orden.Fecha ?? DBNull.Value);
-
-            cmd.Parameters.AddWithValue(
                 "@IdMoneda",
                 (object?)orden.IdMoneda ?? DBNull.Value);
 
@@ -205,22 +201,20 @@ namespace APIGesCom.Services
                 "@IVA",
                 (object?)orden.IVA ?? DBNull.Value);
 
-            conn.Open();
-
-            return cmd.ExecuteNonQuery() > 0;
+            return await ResultadoOperacionSql.EjecutarAsync(cmd);
         }
 
-        public bool Modificar(OrdenDeCompra orden)
+        public async Task<ResultadoOperacion> ModificarAsync(OrdenDeCompra orden)
         {
             string connString =
                 _config.GetConnectionString("GesComDemo");
 
-            using SqlConnection conn =
+            await using SqlConnection conn =
                 new SqlConnection(connString);
 
-            using SqlCommand cmd =
+            await using SqlCommand cmd =
                 new SqlCommand(
-                    "AppData.spModificarOrdenDeCompra",
+                    "AppData.spModificarOrdendeCompra",
                     conn);
 
             cmd.CommandType =
@@ -251,8 +245,8 @@ namespace APIGesCom.Services
                 (object?)orden.IdCotizacion ?? DBNull.Value);
 
             cmd.Parameters.AddWithValue(
-                "@Fecha",
-                (object?)orden.Fecha ?? DBNull.Value);
+                "@IdMoneda",
+                orden.IdMoneda);
 
             cmd.Parameters.AddWithValue(
                 "@Monto",
@@ -262,20 +256,18 @@ namespace APIGesCom.Services
                 "@IVA",
                 (object?)orden.IVA ?? DBNull.Value);
 
-            conn.Open();
-
-            return cmd.ExecuteNonQuery() > 0;
+            return await ResultadoOperacionSql.EjecutarAsync(cmd);
         }
 
-        public bool Eliminar(long id)
+        public async Task<ResultadoOperacion> EliminarAsync(long id)
         {
             string connString =
                 _config.GetConnectionString("GesComDemo");
 
-            using SqlConnection conn =
+            await using SqlConnection conn =
                 new SqlConnection(connString);
 
-            using SqlCommand cmd =
+            await using SqlCommand cmd =
                 new SqlCommand(
                     "AppData.spEliminarOrdenDeCompra",
                     conn);
@@ -287,9 +279,7 @@ namespace APIGesCom.Services
                 "@Id",
                 id);
 
-            conn.Open();
-
-            return cmd.ExecuteNonQuery() > 0;
+            return await ResultadoOperacionSql.EjecutarAsync(cmd);
         }
     }
 }

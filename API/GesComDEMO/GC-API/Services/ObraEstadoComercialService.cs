@@ -1,4 +1,4 @@
-﻿using APIGesCom.Models;
+using APIGesCom.Models;
 using GC_API.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
@@ -120,7 +120,7 @@ namespace APIGesCom.Services
             };
         }
 
-        public async Task<int>
+        public async Task<ResultadoOperacion>
             InsertarAsync(
                 ObraEstadoComercial estado)
         {
@@ -153,10 +153,10 @@ namespace APIGesCom.Services
 
             await conn.OpenAsync();
 
-            return await cmd.ExecuteNonQueryAsync();
+            return await ResultadoOperacionSql.EjecutarAsync(cmd);
         }
 
-        public async Task<bool>
+        public async Task<ResultadoOperacion>
             EliminarAsync(long id)
         {
             string connString =
@@ -179,7 +179,7 @@ namespace APIGesCom.Services
 
             await conn.OpenAsync();
 
-            return await cmd.ExecuteNonQueryAsync() > 0;
+            return await ResultadoOperacionSql.EjecutarAsync(cmd);
         }
 
         private static ObraEstadoComercialDTO Mapear(
@@ -222,7 +222,9 @@ namespace APIGesCom.Services
                     ? null
                     : reader["Sucesores"].ToString(),
 
-                NombreEstadoComercial = reader["NombreEstadoComercial"].ToString()
+                NombreEstadoComercial = reader["NombreEstadoComercial"].ToString(),
+
+                Activo = reader["Activo"] != DBNull.Value && Convert.ToBoolean(reader["Activo"])
             };
         }
 

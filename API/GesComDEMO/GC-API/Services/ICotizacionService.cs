@@ -3,7 +3,7 @@ using GC_API.Models;
 
 public interface ICotizacionService
 {
-    long Insertar(Cotizacion cotizacion);
+    Task<ResultadoOperacion> InsertarAsync(Cotizacion cotizacion);
 
     CotizacionDTO? ListarPorId(long id);
 
@@ -11,7 +11,7 @@ public interface ICotizacionService
             ListarAsync(
             CotizacionFiltro filtro);
 
-    bool Modificar(Cotizacion cotizacion);
+    Task<ResultadoOperacion> ModificarAsync(Cotizacion cotizacion);
 
-    bool Eliminar(long id);
+    Task<ResultadoOperacion> EliminarAsync(long id);
 }

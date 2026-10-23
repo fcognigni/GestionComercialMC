@@ -1,80 +1,31 @@
-﻿using APIGesCom.Models;
+using APIGesCom.Models;
 using APIGesCom.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace APIGesCom.Controllers
+namespace APIGesCom.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class SolicitanteController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class SolicitanteController : ControllerBase
+    private readonly ISolicitanteService _service;
+    public SolicitanteController(ISolicitanteService service) => _service = service;
+
+    [HttpGet] public IActionResult ListarTodos() => Ok(_service.ListarTodos());
+    [HttpGet("{id}")] public IActionResult GetById(long id) => _service.ListarPorId(id) is { } solicitante ? Ok(solicitante) : NotFound(ResultadoOperacion.Fallo("NO_ENCONTRADO", "Solicitante inexistente."));
+    [HttpPost] public async Task<ActionResult> Insertar([FromBody] Solicitante solicitante) => this.ResponderOperacion(await _service.InsertarAsync(solicitante), creado: true);
+
+    [HttpPut("Modificar")]
+    public async Task<ActionResult> Modificar([FromBody] Solicitante solicitante)
     {
-        private readonly ISolicitanteService _solicitanteService;
+        if (solicitante.Id <= 0) return BadRequest(ResultadoOperacion.Fallo("VALIDACION", "Datos de solicitante inválidos."));
+        return this.ResponderOperacion(await _service.ModificarAsync(solicitante));
+    }
 
-        public SolicitanteController(ISolicitanteService solicitanteService)
-        {
-            _solicitanteService = solicitanteService;
-        }
-
-        [HttpGet]
-        public IActionResult ListarTodos()
-        {
-            var lista = _solicitanteService.ListarTodos();
-
-            return Ok(lista);
-        }
-
-        [HttpGet("{id}")]
-        public IActionResult GetById(long id)
-        {
-            var solicitante = _solicitanteService.ListarPorId(id);
-
-            if (solicitante == null)
-                return NotFound();
-
-            return Ok(solicitante);
-        }
-
-        [HttpPost]
-        public IActionResult Insertar([FromBody] Solicitante solicitante)
-        {
-            bool resultado = _solicitanteService.Insertar(solicitante);
-
-            if (!resultado)
-                return BadRequest();
-
-            return Ok(new
-            {
-                mensaje = "Solicitante insertado correctamente"
-            });
-        }
-
-        [HttpPut("Modificar")]
-        public async Task<ActionResult> ModificarCliente([FromBody] Solicitante solicitante)
-        {
-            if (solicitante == null || solicitante.Id <= 0)
-            {
-                return BadRequest("Datos de cliente inválidos.");
-            }
-
-            var response = await _solicitanteService.ModificarSolicitante(solicitante);
-
-            if(response == null) return BadRequest();
-
-            return Ok(response);
-        }
-
-
-        [HttpPut("Eliminar/{id}")]
-        public async Task<ActionResult> EliminarSolicitante(long id)
-        {
-            if (id <= 0)
-            {
-                return BadRequest("El Id del cliente no es válido.");
-            }
-
-            var response = await _solicitanteService.EliminarSolicitante(id);
-            return Ok(response);
-        }
-    
-}
+    [HttpPut("Eliminar/{id}")]
+    public async Task<ActionResult> Eliminar(long id)
+    {
+        if (id <= 0) return BadRequest(ResultadoOperacion.Fallo("VALIDACION", "El ID del solicitante no es válido."));
+        return this.ResponderOperacion(await _service.EliminarAsync(id));
+    }
 }

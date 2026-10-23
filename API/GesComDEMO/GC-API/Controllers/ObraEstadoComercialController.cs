@@ -39,28 +39,20 @@ namespace APIGesCom.Controllers
                 [FromBody]
                 ObraEstadoComercial estado)
         {
-            int resultado =
-                await _service
-                    .InsertarAsync(estado);
-
-            if (resultado == 0)
-                return BadRequest();
-
-            return Ok();
+            return this.ResponderOperacion(
+                await _service.InsertarAsync(estado),
+                creado: true);
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult>
             Eliminar(long id)
         {
-            bool resultado =
-                await _service
-                    .EliminarAsync(id);
+            if (id <= 0)
+                return BadRequest(ResultadoOperacion.Fallo("VALIDACION", "El ID del movimiento no es válido."));
 
-            if (!resultado)
-                return BadRequest();
-
-            return Ok();
+            return this.ResponderOperacion(
+                await _service.EliminarAsync(id));
         }
     }
 }
