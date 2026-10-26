@@ -283,3 +283,13 @@
     margin: 0;
     padding: 0;
 }
+
+/* El contenido debe poder reducirse dentro de la fila animada. */
+.obra-form-contenido-wrapper,
+.obra-form-contenido {
+    min-height: 0;
+}
+
+.obra-form-contenido {
+    overflow: hidden;
+}

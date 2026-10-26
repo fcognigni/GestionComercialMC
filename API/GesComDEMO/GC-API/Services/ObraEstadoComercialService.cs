@@ -151,8 +151,6 @@ namespace APIGesCom.Services
                 (object?)estado.Observaciones ??
                 DBNull.Value);
 
-            await conn.OpenAsync();
-
             return await ResultadoOperacionSql.EjecutarAsync(cmd);
         }
 
@@ -176,8 +174,6 @@ namespace APIGesCom.Services
             cmd.Parameters.AddWithValue(
                 "@Id",
                 id);
-
-            await conn.OpenAsync();
 
             return await ResultadoOperacionSql.EjecutarAsync(cmd);
         }

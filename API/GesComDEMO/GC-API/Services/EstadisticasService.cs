@@ -31,17 +31,10 @@ namespace APIGesCom.Services
                 new SqlConnection(connectionString);
 
             using var command = new SqlCommand(
-                @"
-                SELECT *
-                FROM AppData.VistaEstadisticasCotizaciones
-                ORDER BY
-                    Anio DESC,
-                    Mes DESC,
-                    CantidadCotizaciones DESC;
-                ",
+                "AppData.SP_LeerVistaEstadisticasCotizaciones",
                 connection);
 
-            command.CommandType = CommandType.Text;
+            command.CommandType = CommandType.StoredProcedure;
 
             await connection.OpenAsync();
 
@@ -152,17 +145,10 @@ namespace APIGesCom.Services
                 new SqlConnection(connectionString);
 
             using var command = new SqlCommand(
-                @"
-                SELECT *
-                FROM AppData.VistaEstadisticasObras
-                ORDER BY
-                    Anio DESC,
-                    Mes DESC,
-                    CantidadObras DESC;
-                ",
+                "AppData.SP_LeerVistaEstadisticasObras",
                 connection);
 
-            command.CommandType = CommandType.Text;
+            command.CommandType = CommandType.StoredProcedure;
 
             await connection.OpenAsync();
 

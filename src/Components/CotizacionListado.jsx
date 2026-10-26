@@ -1,256 +1,69 @@
-import React from "react";
 import { useEffect, useState } from "react";
-import '../Styles/Cotizacion.css'
 import SelectorCliente from "./SelectorCliente";
+import DateFilterInput from "./DateFilterInput";
+import "../Styles/Cotizacion.css";
+import "../Styles/Cliente.css";
 
-export default function ListCotizacion({
-    refreshKey,
-    onEditar
-}) {
+const API_URL = "https://localhost:7208";
 
-    const [cotizaciones, setCotizaciones] =
-        useState([]);
+export default function ListCotizacion({ refreshKey, onEditar }) {
+  const [cotizaciones, setCotizaciones] = useState([]);
+  const [clientes, setClientes] = useState([]);
+  const [filtros, setFiltros] = useState({ idCliente: "", fechaDesde: "", fechaHasta: "" });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    const [loading, setLoading] =
-        useState(true);
-
-    const [error, setError] =
-        useState("");
-
-    const [clientes, setClientes] =
-        useState([]);
-
-    const [filtros, setFiltros] = useState({
-        idCliente: "",
-        idEstadoComercial: "",
-        fechaDesde: "",
-        fechaHasta: ""
-    });
-
-    const actualizarFiltro = (e) => {
-
-        const { name, value } = e.target;
-
-        setFiltros(prev => ({
-            ...prev,
-            [name]: value
-        }));
-
-        console.log(estados)
-
-        setPagina(1);
-    }
-
-    const cargarCotizaciones = async ({
-        idCliente,
-        idObra,
-        page = 1,
-        pageSize = 50
-    } = {}) => {
-
-        const params = new URLSearchParams();
-
-        if (idCliente) {
-            params.append("IdCliente", idCliente)
-        }
-
-        if (idObra) {
-            params.append("IdObra", idObra)
-        }
-
-        params.append("page", page);
-        params.append("pageSize", pageSize);
-
-        console.log(params)
-
-        try {
-
-            setLoading(true);
-            setError("");
-
-            const response =
-                await fetch(
-                    `https://localhost:7208/api/Cotizacion?${params}`
-                );
-
-            if (!response.ok) {
-
-                throw new Error(
-                    "Error al obtener cotizaciones"
-                );
-            }
-
-            const data =
-                await response.json();
-
-            console.log("DATA", JSON.stringify(data, null, 2))
-            setCotizaciones(data.items);
-
-        }
-        catch (err) {
-
-            console.error(err);
-
-            setError(
-                err.message ||
-                "Error al cargar cotizaciones"
-            );
-        }
-        finally {
-
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-
-        cargarCotizaciones();
-
-    }, [refreshKey]);
-
+  useEffect(() => {
     const cargarClientes = async () => {
-
-        try {
-
-            const response =
-                await fetch(
-                    "https://localhost:7208/api/Cliente"
-                );
-
-            if (!response.ok)
-                throw new Error(
-                    "Error cargando clientes"
-                );
-
-            const data =
-                await response.json();
-
-            setClientes(data);
-
-        }
-        catch (err) {
-
-            setError(err.message);
-
-        }
+      try {
+        const response = await fetch(`${API_URL}/api/Cliente`);
+        if (!response.ok) throw new Error("No se pudieron cargar los clientes.");
+        setClientes(await response.json());
+      } catch (err) { setError(err.message); }
     };
+    cargarClientes();
+  }, []);
 
-    useEffect(() => {
+  useEffect(() => {
+    const cargarCotizaciones = async () => {      if ((filtros.fechaDesde && !filtros.fechaHasta) || (!filtros.fechaDesde && filtros.fechaHasta)) {
+        setLoading(false);
+        return;
+      }
+      if (filtros.fechaDesde && filtros.fechaHasta && filtros.fechaDesde > filtros.fechaHasta) {
+        setLoading(false);
+        setError("La fecha desde no puede ser posterior a la fecha hasta.");
+        return;
+      }
+      const params = new URLSearchParams({ page: "1", pageSize: "50" });
+      if (filtros.idCliente) params.set("idCliente", filtros.idCliente);
+      if (filtros.fechaDesde) params.set("fechaDesde", filtros.fechaDesde);
+      if (filtros.fechaHasta) params.set("fechaHasta", filtros.fechaHasta);
 
-        cargarClientes();
+      try {
+        setLoading(true); setError("");
+        const response = await fetch(`${API_URL}/api/Cotizacion?${params}`);
+        if (!response.ok) throw new Error("No se pudieron cargar las cotizaciones.");
+        const data = await response.json();
+        setCotizaciones(data.items || []);
+      } catch (err) { setError(err.message || "Error al cargar cotizaciones."); setCotizaciones([]); }
+      finally { setLoading(false); }
+    };
+    cargarCotizaciones();
+  }, [refreshKey, filtros]);
 
-    }, []);
+  const actualizarFiltro = ({ target: { name, value } }) => setFiltros(prev => ({ ...prev, [name]: value }));
+  const formatoMonto = monto => Number(monto || 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    const cliente =
-        clientes.find(
-            c => c.id === cotizaciones.idCliente
-        );
-
-
-    if (loading) {
-
-        return (
-            <p>Cargando cotizaciones...</p>
-        );
-    }
-
-    if (error) {
-
-        return (
-            <div className="error-msg">
-                {error}
-            </div>
-        );
-    }
-
-    return (
-        <>
-            <h3>Listado de Cotizaciones</h3>
-
-            <SelectorCliente
-                clientes={clientes}
-                value={filtros.idCliente}
-                onSeleccionar={actualizarFiltro}
-            />
-
-            <div className="table-container">
-                <table className="custom-table">
-
-                    <thead>
-
-                        <tr>
-                            <th>Número</th>
-                            <th>Cliente</th>
-                            <th>Referencia</th>
-                            <th>Fecha</th>
-                            <th></th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        {cotizaciones.length === 0 ? (
-
-                            <tr>
-                                <td colSpan="5">
-                                    No existen cotizaciones cargadas
-                                </td>
-                            </tr>
-
-                        ) : (
-
-                            cotizaciones.map(cotizacion => (
-
-                                <tr key={cotizacion.id}>
-
-                                    <td>
-                                        {cotizacion.numero}
-                                    </td>
-
-                                    <td>
-                                        {cliente?.nombre}
-                                    </td>
-
-                                    <td>
-                                        {cotizacion.referencia}
-                                    </td>
-
-                                    <td>
-                                        {
-                                            new Date(
-                                                cotizacion.fecha
-                                            )
-                                                .toLocaleDateString(
-                                                    "es-AR"
-                                                )
-                                        }
-                                    </td>
-
-                                    <td>
-
-                                        <button
-                                            className="btn btn-sm btn-outline-primary"
-                                            onClick={() =>
-                                                onEditar(
-                                                    cotizacion
-                                                )
-                                            }
-                                        >
-                                            ✏️
-                                        </button>
-
-                                    </td>
-
-                                </tr>
-
-                            ))
-                        )}
-
-                    </tbody>
-
-                </table>
-            </div>
-        </>
-    );
+  return <>
+    <h3>Listado de Cotizaciones</h3>
+    <div className="filtros-grid">
+      <div className="form-group"><label>Cliente</label><SelectorCliente clientes={clientes} value={filtros.idCliente} onSeleccionar={actualizarFiltro} /></div>
+      <div className="form-group"><label>Desde</label><DateFilterInput name="fechaDesde" value={filtros.fechaDesde} onChange={actualizarFiltro} /></div>
+      <div className="form-group"><label>Hasta</label><DateFilterInput name="fechaHasta" value={filtros.fechaHasta} onChange={actualizarFiltro} /></div>
+    </div>
+    {error && <div className="error-msg">{error}</div>}
+    <div className="table-container"><table className="custom-table"><thead><tr><th>Número</th><th>Cliente</th><th>Referencia</th><th>Fecha</th><th>Monto</th><th>Acciones</th></tr></thead>
+      <tbody>{loading ? <tr><td colSpan="6" className="text-center">Cargando cotizaciones...</td></tr> : cotizaciones.length === 0 ? <tr><td colSpan="6" className="text-center">No se encontraron cotizaciones con los criterios ingresados.</td></tr> : cotizaciones.map(cotizacion => <tr key={cotizacion.id}><td className="col-numero">{cotizacion.prefijo}-{cotizacion.numero}</td><td>{cotizacion.nombreCliente || "-"}</td><td>{cotizacion.referencia}</td><td>{cotizacion.fecha ? new Date(cotizacion.fecha).toLocaleDateString("es-AR") : "-"}</td><td className="monto">{cotizacion.moneda || "$"} {formatoMonto(cotizacion.monto)}</td><td className="text-center"><button type="button" className="btn-edit" onClick={() => onEditar?.(cotizacion)} aria-label={`Editar cotización ${cotizacion.numero}`}>✏️</button></td></tr>)}</tbody>
+    </table></div>
+  </>;
 }

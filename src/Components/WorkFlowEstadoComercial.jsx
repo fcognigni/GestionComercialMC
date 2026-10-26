@@ -44,7 +44,7 @@ export default function WorkflowEstadoComercial({
         if (onObraSeleccionada) {
             onObraSeleccionada(formData.idObra);
         }
-    }, [formData.idObra]);
+    }, [formData.idObra, onObraSeleccionada]);
 
     const cargarDatos = async () => {
         try {
@@ -314,8 +314,8 @@ export default function WorkflowEstadoComercial({
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="form-cotizacion" noValidate>
-                <div className="form-grid">
+            <form onSubmit={handleSubmit} className="form-cotizacion workflow-form" noValidate>
+                <div className="form-grid workflow-form-grid">
 
                     <div className="form-group">
                         <label>Cliente</label>

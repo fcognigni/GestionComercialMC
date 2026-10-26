@@ -178,6 +178,11 @@ CREATE TABLE AppData.Usuario (
 );
 GO
 
+INSERT INTO AppData.Usuario (Nombre, PasswordHash, IdPermiso)
+values ('MC', HASHBYTES('SHA2_256', '4875'), 1)
+GO
+
+
 ---------------------------------------------------
 -- CLIENTE
 ---------------------------------------------------
@@ -585,18 +590,19 @@ GO
 -- CREACION USUARIO ADMIN
 ---------------------------------------------------
 
-INSERT INTO AppData.Usuario
-(
-    Nombre,
-    PasswordHash,
-    IdPermiso
-)
-VALUES
-(
-    'admin',
-    HASHBYTES('SHA2_256', 'admin123'),
-    1
-);
+IF EXISTS (SELECT 1 FROM AppData.Usuario WHERE Nombre = 'MC')
+BEGIN
+    UPDATE AppData.Usuario
+    SET PasswordHash = HASHBYTES('SHA2_256', '4875'),
+        IdPermiso = 1,
+        Activo = 1
+    WHERE Nombre = 'MC';
+END
+ELSE
+BEGIN
+    INSERT INTO AppData.Usuario (Nombre, PasswordHash, IdPermiso)
+    VALUES ('MC', HASHBYTES('SHA2_256', '4875'), 1);
+END
 GO
 
 ---------------------------------------------------
@@ -622,7 +628,7 @@ BEGIN
         ON u.IdPermiso = p.Id
     WHERE
         u.Nombre = @Usuario
-        AND u.PasswordHash = HASHBYTES('SHA2_256', @Password)
+        AND u.PasswordHash = HASHBYTES('SHA2_256', CAST(@Password AS VARCHAR(200)))
         AND u.Activo = 1;
 
 END;
@@ -647,6 +653,20 @@ DENY SELECT, INSERT, UPDATE, DELETE
 ON SCHEMA::AppData
 TO RolUsuario;
 GO
+
+
+CREATE LOGIN ApiGesComUser WITH PASSWORD = 'UnaPasswordMuySeguraParaLaDB123!';
+go
+
+CREATE USER ApiGesComUser FOR LOGIN ApiGesComUser;
+-- Dale permisos estrictos solo para ejecutar tu SP
+go
+
+GRANT EXECUTE ON OBJECT::AppData.spLogin TO ApiGesComUser;
+go
+
+ALTER ROLE RolUsuario ADD MEMBER ApiGesComUser;
+go
 
 
 ---------------------------------------------------
@@ -1705,6 +1725,36 @@ END
 GO
 
 
+CREATE PROCEDURE AppData.SP_LeerVistaEstadisticasObras
+AS
+BEGIN
+
+SELECT *
+                FROM AppData.VistaEstadisticasObras
+                ORDER BY
+                    Anio DESC,
+                    Mes DESC,
+                    CantidadObras DESC;
+
+END
+GO
+
+
+CREATE PROCEDURE AppData.SP_LeerVistaEstadisticasCotizaciones
+AS
+BEGIN
+
+SELECT *
+                FROM AppData.VistaEstadisticasCotizaciones
+                ORDER BY
+                    Anio DESC,
+                    Mes DESC,
+                    CantidadCotizaciones DESC
+
+END
+GO
+
+
 
 CREATE VIEW AppData.VistaEstadisticasCotizaciones
 AS
@@ -2209,6 +2259,11 @@ GO
 GRANT EXECUTE ON AppData.spEliminarSolicitante TO RolUsuario;
 GO
 
+GRANT EXECUTE ON AppData.SP_LeerVistaEstadisticasObras TO RolUsuario;
+GO
+
+GRANT EXECUTE ON AppData.SP_LeerVistaEstadisticasCotizaciones TO RolUsuario;
+GO
 
 
 

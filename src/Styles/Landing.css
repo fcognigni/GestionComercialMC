@@ -1,0 +1,10 @@
+.landing-page { min-height: 100vh; padding: clamp(32px, 7vw, 92px); background: linear-gradient(135deg, #f5f1ff, #e8e2f5); color: #3c2a60; }
+.landing-hero { max-width: 760px; margin-bottom: 36px; }
+.landing-kicker { display: inline-block; margin-bottom: 14px; color: #6b46c1; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: .8rem; }
+.landing-hero h1 { margin: 0; max-width: 690px; font-size: clamp(2.2rem, 5vw, 4.5rem); line-height: 1.05; }
+.landing-hero p { margin: 18px 0 0; font-size: 1.05rem; color: #64748b; }
+.landing-chart-card { width: min(100%, 1050px); min-height: 410px; padding: clamp(20px, 4vw, 34px); border: 1px solid rgba(107, 70, 193, .13); border-radius: 22px; background: rgba(255, 255, 255, .86); box-shadow: 0 16px 42px rgba(60, 42, 96, .1); }
+.landing-chart-card h2 { margin: 0 0 22px; font-size: 1.1rem; }
+.landing-chart-card canvas { max-height: 340px; }
+.landing-error { color: #c53030; }
+.app-locked { filter: blur(6px); pointer-events: none; user-select: none; }

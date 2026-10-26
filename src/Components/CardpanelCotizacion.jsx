@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import '../Styles/Cardpanel.css'
 import ClienteForm from '../Funciones/ClienteForm'
 import ListCotizacion from "./CotizacionListado";
 import FormCotizacion from "./Cotizacion";
 
-const CardpanelCotizacion = ({ Form, Listado }) => {
+const CardpanelCotizacion = () => {
 
     const [refreshKey, setRefreshKey] =
         useState(0);
@@ -18,7 +18,7 @@ const CardpanelCotizacion = ({ Form, Listado }) => {
         setFormAbierto(prev => !prev);
     };
 
-    const [formAbierto, setFormAbierto] = useState(true);
+    const [formAbierto, setFormAbierto] = useState(false);
 
     const [cotizacionSeleccionada, setCotizacionSeleccionada] = useState(null);
 
@@ -40,7 +40,7 @@ const CardpanelCotizacion = ({ Form, Listado }) => {
                         className="obra-form-header"
                         onClick={alternarFormulario}
                     >
-                        <h3>Formulario de obra</h3>
+                        <h3>Formulario cotización</h3>
 
                         <button
                             type="button"
@@ -62,7 +62,7 @@ const CardpanelCotizacion = ({ Form, Listado }) => {
 
                     {/* Contenido animado */}
                     <div className="obra-form-contenido-wrapper">
-                        <div className="content-card">
+                        <div className="obra-form-contenido">
 
                             <FormCotizacion
                                 onSuccess={actualizarListado}

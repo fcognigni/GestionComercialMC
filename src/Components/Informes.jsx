@@ -1,283 +1,77 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SelectorCliente from "./SelectorCliente";
-import '../Styles/Cardpanel.css'
+import DateFilterInput from "./DateFilterInput";
+import "../Styles/Cotizacion.css";
+import "../Styles/Cliente.css";
+
+const API_URL = "https://localhost:7208";
 
 export default function Informes() {
+  const [clientes, setClientes] = useState([]);
+  const [estadosComerciales, setEstadosComerciales] = useState([]);
+  const [movimientos, setMovimientos] = useState([]);
+  const [filtros, setFiltros] = useState({ idCliente: "", idEstadoComercial: "", fechaDesde: "", fechaHasta: "" });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    const API_URL = "https://localhost:7208"
-
-    const [idObra, setIdObra] = useState("")
-    const [loading, setLoading] = useState(false);
-    const [clientes, setClientes] = useState([]);
-    const [errors, setError] = useState([])
-
-    const [filtros, setFiltros] = useState({
-        idCliente: "",
-        idEstadoComercial: "",
-        fechaDesde: "",
-        fechaHasta: ""
-    });
-
-    const [estados, setEstados] = useState([]);
-    const [estadosComerciales, setEstadosComerciales] = useState([])
-
-    const [totalRegistros, setTotalRegistros] =
-        useState(0);
-
-    const [pagina, setPagina] =
-        useState(1);
-
-    const cargarEstadosComerciales = async () => {
-        try {
-            setLoading(true);
-            setError("");
-
-            const respuesta = await 
-                fetch("https://localhost:7208/api/EstadoComercial")
-            ;
-
-            if (!respuesta) throw new Error("Error cargando estados comerciales");
-
-            const data = await respuesta.json()
-            
-            setEstadosComerciales(data);
-        }
-        catch (err) {
-            console.error(err);
-            setError(err.message || "Error cargando datos");
-        }
-        finally {
-            setLoading(false);
-        }
+  useEffect(() => {
+    const cargarOpciones = async () => {
+      try {
+        const [clientesResponse, estadosResponse] = await Promise.all([
+          fetch(`${API_URL}/api/Cliente`),
+          fetch(`${API_URL}/api/EstadoComercial`)
+        ]);
+        if (!clientesResponse.ok || !estadosResponse.ok) throw new Error("No se pudieron cargar los filtros.");
+        setClientes(await clientesResponse.json());
+        setEstadosComerciales(await estadosResponse.json());
+      } catch (err) { setError(err.message); }
     };
+    cargarOpciones();
+  }, []);
 
-    const cargarClientes = async () => {
+  useEffect(() => {
+    const cargarMovimientos = async () => {      if ((filtros.fechaDesde && !filtros.fechaHasta) || (!filtros.fechaDesde && filtros.fechaHasta)) {
+        setLoading(false);
+        return;
+      }
+      if (filtros.fechaDesde && filtros.fechaHasta && filtros.fechaDesde > filtros.fechaHasta) {
+        setLoading(false);
+        setError("La fecha desde no puede ser posterior a la fecha hasta.");
+        return;
+      }
+      const params = new URLSearchParams({ page: "1", pageSize: "50" });
+      if (filtros.idCliente) params.set("idCliente", filtros.idCliente);
+      if (filtros.idEstadoComercial) params.set("idEstadoComercial", filtros.idEstadoComercial);
+      if (filtros.fechaDesde) params.set("fechaDesde", filtros.fechaDesde);
+      if (filtros.fechaHasta) params.set("fechaHasta", filtros.fechaHasta);
 
-        try {
-
-            setLoading(true);
-
-            const response =
-                await fetch(
-                    "https://localhost:7208/api/Cliente"
-                );
-
-            if (!response.ok) {
-                throw new Error(
-                    "Error al obtener clientes"
-                );
-            }
-
-            const data =
-                await response.json();
-
-                setClientes(data)
-            console.log(data)
-
-        } catch (err) {
-
-            setError(err.message);
-
-        } finally {
-
-            setLoading(false);
-
-        }
+      try {
+        setLoading(true); setError("");
+        const response = await fetch(`${API_URL}/api/ObraEstadoComercial?${params}`);
+        if (!response.ok) throw new Error("No se pudo cargar el historial comercial.");
+        const data = await response.json();
+        setMovimientos(data.items || []);
+      } catch (err) { setError(err.message || "Error al cargar el historial comercial."); setMovimientos([]); }
+      finally { setLoading(false); }
     };
+    cargarMovimientos();
+  }, [filtros]);
 
-    useEffect(() => {
+  const actualizarFiltro = ({ target: { name, value } }) => setFiltros(prev => ({ ...prev, [name]: value }));
 
-        cargarClientes();
-
-    }, []);
-
-    useEffect(() => {
-        cargarEstadosComerciales()}
-    ,[])
-
-    async function cargarEstados({
-        idCliente,
-        idEstadoComercial,
-        page = 1,
-        pageSize = 50
-    } = {}) {
-
-        const params = new URLSearchParams();
-
-        if (idCliente) {
-            params.append("idCliente", idCliente)
-        }
-
-        if (idObra) {
-            params.append("idObra", idObra);
-        }
-
-        if (idEstadoComercial) {
-            params.append(
-                "idEstadoComercial",
-                idEstadoComercial
-            );
-        }
-
-        params.append("page", page);
-        params.append("pageSize", pageSize);
-
-        console.log(params)
-
-        const response = await fetch(
-            `${API_URL}/api/ObraEstadoComercial?${params}`
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                "Error al cargar los estados comerciales"
-            );
-        }
-
-        return await response.json();
-
-    }
-
-
-    async function cargarDatos() {
-
-        try {
-
-            const data =
-                await cargarEstados({
-                    ...filtros,
-                    page: pagina,
-                    pageSize: 50
-                });
-
-            setEstados(data.items);
-
-            console.log(data.items)
-
-            setTotalRegistros(
-                data.totalRegistros
-            );
-        }
-
-        catch (err) {
-            console.log(err)
-        }
-    }
-
-    const actualizarFiltro = (e) => {
-
-        const { name, value } = e.target;
-
-        setFiltros(prev => ({
-            ...prev,
-            [name]: value
-        }));
-
-        console.log(estados)
-
-        setPagina(1);
-    }
-
-    useEffect(() => {
-        console.log("FILTROS CAMBIARON:", filtros);
-    }, [filtros]);
-
-
-    useEffect(() => {
-
-        cargarDatos();
-        console.log("se recargaron los datos")
-
-    }, [
-        pagina,
-        filtros
-    ]);
-
-
-    return (
-        <main className="main-content container-fluid py-4">
-
-            {loading && (
-                <div className="info-msg">
-                    Cargando historial...
-                </div>
-            )}
-
-            {!loading && totalRegistros === 0 && (
-                <div className="historial-vacio">
-                    No hay historial de estados comerciales aun.
-                </div>
-            )}
-
-            <div className="contenedor-filtros">
-                <div className="filtro">
-                    <label htmlFor="idEstados">Estado comercial</label>
-                    <select
-                        name="idEstadoComercial"
-                        value={filtros.idEstadoComercial}
-                        onChange={actualizarFiltro}>
-
-                        <option value="">
-                            "Seleccione estado comercial"
-                        </option>
-
-                        {
-                            estadosComerciales.map(
-                                e => (
-                                    <option
-                                        key={e.id}
-                                        value={e.id}
-                                    >
-                                        {e.nombre}
-                                    </option>
-                                )
-                            )
-                        }
-
-                    </select>
-                </div>
-                <SelectorCliente
-                    clientes={clientes}
-                    value={filtros.idCliente}
-                    onSeleccionar={actualizarFiltro}
-                />
-            </div>
-
-            <div className="content-card">
-                <h3>Historial estados comerciales</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Referencia</th>
-                            <th>Cliente</th>
-                            <th>Estado</th>
-                            <th>Observaciones</th>
-                            <th>Fecha</th>
-                            <th>Vigencia</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        {estados.map(e =>
-
-                            <tr key={e.id}>
-                                <td>{e.referencia}</td>
-                                <td>{e.cliente}</td>
-                                <td>{e.nombreEstadoComercial}</td>
-                                <td>{e.observaciones || "Sin observaciones"}</td>
-                                <td>{e.fecha ? new Date(e.fecha).toLocaleString() : ""}</td>
-                                <td>{e.activo === false ? "Anulado" : "Vigente"}</td>
-                            </tr>
-
-                        )
-                        }
-
-                    </tbody>
-
-
-                </table>
-            </div>
-        </main>
-    )
+  return <main className="main-content container-fluid py-4">
+    <div className="content-card">
+      <h3>Historial de estados comerciales</h3>
+      <div className="filtros-grid">
+        <div className="form-group"><label>Cliente</label><SelectorCliente clientes={clientes} value={filtros.idCliente} onSeleccionar={actualizarFiltro} /></div>
+        <div className="form-group"><label>Estado comercial</label><select name="idEstadoComercial" value={filtros.idEstadoComercial} onChange={actualizarFiltro}><option value="">Todos los estados</option>{estadosComerciales.map(estado => <option key={estado.id} value={estado.id}>{estado.nombre}</option>)}</select></div>
+        <div className="form-group"><label>Desde</label><DateFilterInput name="fechaDesde" value={filtros.fechaDesde} onChange={actualizarFiltro} /></div>
+        <div className="form-group"><label>Hasta</label><DateFilterInput name="fechaHasta" value={filtros.fechaHasta} onChange={actualizarFiltro} /></div>
+      </div>
+      {error && <div className="error-msg">{error}</div>}
+      <div className="table-container"><table className="custom-table"><thead><tr><th>Referencia</th><th>Cliente</th><th>Estado</th><th>Observaciones</th><th>Fecha</th><th>Vigencia</th></tr></thead>
+        <tbody>{loading ? <tr><td colSpan="6" className="text-center">Cargando historial...</td></tr> : movimientos.length === 0 ? <tr><td colSpan="6" className="text-center">No se encontraron movimientos con los criterios ingresados.</td></tr> : movimientos.map(movimiento => <tr key={movimiento.id}><td>{movimiento.referencia}</td><td>{movimiento.cliente}</td><td><span className="badge-estado">{movimiento.nombreEstadoComercial}</span></td><td>{movimiento.observaciones || "Sin observaciones"}</td><td>{movimiento.fecha ? new Date(movimiento.fecha).toLocaleString("es-AR") : "-"}</td><td>{movimiento.activo === false ? "Anulado" : "Vigente"}</td></tr>)}</tbody>
+      </table></div>
+    </div>
+  </main>;
 }

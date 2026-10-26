@@ -144,3 +144,30 @@
   background-color: var(--lila-soft, #e9e3f7);
   color: var(--violeta-oscuro, #3c2a60);
 }
+
+/* Flujo de estado comercial: lectura y carga en una única columna. */
+.workflow-form {
+  width: 100%;
+  max-width: 760px;
+}
+
+.workflow-form-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.workflow-form-grid .col-span-2 {
+  grid-column: 1;
+}
+
+.workflow-form-grid .form-group input,
+.workflow-form-grid .form-group select,
+.workflow-form-grid .form-group textarea {
+  min-height: 42px;
+  font-size: 0.95rem;
+}
+
+.workflow-form-grid .form-group textarea {
+  min-height: 112px;
+  resize: vertical;
+}

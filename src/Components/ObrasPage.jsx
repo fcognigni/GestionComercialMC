@@ -7,7 +7,7 @@ import ObraListado from "./ObraListado.jsx";
 export default function ObrasPage() {
 
     const [refreshKey, setRefreshKey] = useState(0);
-    const [formAbierto, setFormAbierto] = useState(true);
+    const [formAbierto, setFormAbierto] = useState(false);
 
     const handleSuccess = () => {
         setRefreshKey((prev) => prev + 1);
