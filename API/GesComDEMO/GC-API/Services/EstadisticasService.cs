@@ -51,37 +51,37 @@ namespace APIGesCom.Services
                     Mes = reader.GetInt32(
                         reader.GetOrdinal("Mes")),
 
-                    IdCliente = reader.GetInt64(
+                    IdCliente = reader.GetInt32(
                         reader.GetOrdinal("IdCliente")),
 
                     NombreCliente = reader.GetString(
                         reader.GetOrdinal("NombreCliente")),
 
-                    CantidadCotizaciones = reader.GetInt64(
+                    CantidadCotizaciones = reader.GetInt32(
                         reader.GetOrdinal("CantidadCotizaciones")),
 
                     MontoCotizadoPesos = reader.GetDecimal(
                         reader.GetOrdinal("MontoCotizadoPesos")),
 
-                    CotizacionesLlevadasAObra = reader.GetInt64(
+                    CotizacionesLlevadasAObra = reader.GetInt32(
                         reader.GetOrdinal("CotizacionesLlevadasAObra")),
 
-                    TotalCotizacionesMes = reader.GetInt64(
+                    TotalCotizacionesMes = reader.GetInt32(
                         reader.GetOrdinal("TotalCotizacionesMes")),
 
                     TotalMontoMes = reader.GetDecimal(
                         reader.GetOrdinal("TotalMontoMes")),
 
-                    TotalLlevadasAObraMes = reader.GetInt64(
+                    TotalLlevadasAObraMes = reader.GetInt32(
                         reader.GetOrdinal("TotalLlevadasAObraMes")),
 
-                    TotalCotizacionesAnio = reader.GetInt64(
+                    TotalCotizacionesAnio = reader.GetInt32(
                         reader.GetOrdinal("TotalCotizacionesAnio")),
 
                     TotalMontoAnio = reader.GetDecimal(
                         reader.GetOrdinal("TotalMontoAnio")),
 
-                    TotalLlevadasAObraAnio = reader.GetInt64(
+                    TotalLlevadasAObraAnio = reader.GetInt32(
                         reader.GetOrdinal("TotalLlevadasAObraAnio")),
 
                     PorcentajeCotizacionesMes = reader.GetDecimal(
@@ -109,10 +109,10 @@ namespace APIGesCom.Services
                             reader.GetOrdinal(
                                 "PorcentajeLlevadasAObraSobreTotalAnio")),
 
-                    RankingCantidadMes = reader.GetInt64(
+                    RankingCantidadMes = reader.GetInt32(
                         reader.GetOrdinal("RankingCantidadMes")),
 
-                    RankingMontoMes = reader.GetInt64(
+                    RankingMontoMes = reader.GetInt32(
                         reader.GetOrdinal("RankingMontoMes")),
 
                     EsTop10Cantidad = reader.GetInt32(
@@ -165,25 +165,25 @@ namespace APIGesCom.Services
                     Mes = reader.GetInt32(
                         reader.GetOrdinal("Mes")),
 
-                    IdCliente = reader.GetInt64(
+                    IdCliente = reader.GetInt32(
                         reader.GetOrdinal("IdCliente")),
 
                     NombreCliente = reader.GetString(
                         reader.GetOrdinal("NombreCliente")),
 
-                    CantidadObras = reader.GetInt64(
+                    CantidadObras = reader.GetInt32(
                         reader.GetOrdinal("CantidadObras")),
 
                     MontoObrasPesos = reader.GetDecimal(
                         reader.GetOrdinal("MontoObrasPesos")),
 
-                    TotalObrasMes = reader.GetInt64(
+                    TotalObrasMes = reader.GetInt32(
                         reader.GetOrdinal("TotalObrasMes")),
 
                     TotalMontoObrasMes = reader.GetDecimal(
                         reader.GetOrdinal("TotalMontoObrasMes")),
 
-                    TotalObrasAnio = reader.GetInt64(
+                    TotalObrasAnio = reader.GetInt32(
                         reader.GetOrdinal("TotalObrasAnio")),
 
                     TotalMontoObrasAnio = reader.GetDecimal(
@@ -220,7 +220,7 @@ namespace APIGesCom.Services
                             reader.GetOrdinal(
                                 "ParticipacionPendientesMes")),
 
-                    TotalObrasCliente = reader.GetInt64(
+                    TotalObrasCliente = reader.GetInt32(
                         reader.GetOrdinal("TotalObrasCliente")),
 
                     TotalObrasConOCCliente = reader.GetInt32(
@@ -232,7 +232,7 @@ namespace APIGesCom.Services
                             reader.GetOrdinal(
                                 "PorcentajeObrasConOrdenCompra")),
 
-                    RankingObrasMes = reader.GetInt64(
+                    RankingObrasMes = reader.GetInt32(
                         reader.GetOrdinal("RankingObrasMes")),
 
                     EsTop10Obras = reader.GetInt32(

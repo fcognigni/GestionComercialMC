@@ -23,7 +23,7 @@ BEGIN
     IF @Texto IS NULL
         RETURN 1;
 
-    IF @Texto LIKE '%[^A-Za-zÁÉÍÓÚáéíóúÑñ ]%'
+    IF @Texto LIKE '%[^A-Za-zÁÉÍÓÚáéíóúÑñ. ]%'
         RETURN 0;
 
     RETURN 1;
@@ -43,7 +43,7 @@ BEGIN
     IF @Texto IS NULL
         RETURN 1;
 
-    IF @Texto LIKE '%[^A-Za-z0-9ÁÉÍÓÚáéíóúÑñ ]%'
+    IF @Texto LIKE '%[^A-Za-z0-9ÁÉÍÓÚáéíóúÑñ .]%'
         RETURN 0;
 
     RETURN 1;
@@ -96,50 +96,50 @@ GO
 -- VALIDACION CUIT ARGENTINO
 ---------------------------------
 
---CREATE FUNCTION AppData.fnCUITValido (@CUIT VARCHAR(11))
---RETURNS BIT
---AS
---BEGIN
+CREATE FUNCTION AppData.fnCUITValido (@CUIT VARCHAR(11))
+RETURNS BIT
+AS
+BEGIN
 
-  --  DECLARE @Suma INT = 0;
-    --DECLARE @Digito INT;
-   -- DECLARE @Resultado INT;
+    DECLARE @Suma INT = 0;
+    DECLARE @Digito INT;
+    DECLARE @Resultado INT;
 
---    IF LEN(@CUIT) <> 11
-  --      RETURN 0;
+    IF LEN(@CUIT) <> 11
+        RETURN 0;
 
-    --IF @CUIT LIKE '%[^0-9]%'
-      --  RETURN 0;
+    IF @CUIT LIKE '%[^0-9]%'
+        RETURN 0;
 
- --   SET @Suma =
-   --     (CAST(SUBSTRING(@CUIT,1,1) AS INT) * 5) +
-   --     (CAST(SUBSTRING(@CUIT,2,1) AS INT) * 4) +
-    --    (CAST(SUBSTRING(@CUIT,3,1) AS INT) * 3) +
-    --    (CAST(SUBSTRING(@CUIT,4,1) AS INT) * 2) +
-    --    (CAST(SUBSTRING(@CUIT,5,1) AS INT) * 7) +
-    --    (CAST(SUBSTRING(@CUIT,6,1) AS INT) * 6) +
-    --    (CAST(SUBSTRING(@CUIT,7,1) AS INT) * 5) +
-    --    (CAST(SUBSTRING(@CUIT,8,1) AS INT) * 4) +
-     --   (CAST(SUBSTRING(@CUIT,9,1) AS INT) * 3) +
-     --   (CAST(SUBSTRING(@CUIT,10,1) AS INT) * 2);
+   SET @Suma =
+        (CAST(SUBSTRING(@CUIT,1,1) AS INT) * 5) +
+        (CAST(SUBSTRING(@CUIT,2,1) AS INT) * 4) +
+        (CAST(SUBSTRING(@CUIT,3,1) AS INT) * 3) +
+        (CAST(SUBSTRING(@CUIT,4,1) AS INT) * 2) +
+       (CAST(SUBSTRING(@CUIT,5,1) AS INT) * 7) +
+       (CAST(SUBSTRING(@CUIT,6,1) AS INT) * 6) +
+        (CAST(SUBSTRING(@CUIT,7,1) AS INT) * 5) +
+        (CAST(SUBSTRING(@CUIT,8,1) AS INT) * 4) +
+        (CAST(SUBSTRING(@CUIT,9,1) AS INT) * 3) +
+        (CAST(SUBSTRING(@CUIT,10,1) AS INT) * 2);
 
---    SET @Resultado = 11 - (@Suma % 11);
---
---    IF @Resultado = 11
---        SET @Resultado = 0;
---
- --   IF @Resultado = 10
-   --     SET @Resultado = 9;
+    SET @Resultado = 11 - (@Suma % 11);
 
-  --  SET @Digito = CAST(SUBSTRING(@CUIT,11,1) AS INT);
+    IF @Resultado = 11
+        SET @Resultado = 0;
 
---    IF @Resultado = @Digito
---        RETURN 1;
+    IF @Resultado = 10
+        SET @Resultado = 9;
 
- --   RETURN 0;
+    SET @Digito = CAST(SUBSTRING(@CUIT,11,1) AS INT);
 
---END;
---GO
+    IF @Resultado = @Digito
+        RETURN 1;
+
+    RETURN 0;
+
+END
+go
 
 ---------------------------------------------------
 -- PERMISOS
@@ -1725,36 +1725,6 @@ END
 GO
 
 
-CREATE PROCEDURE AppData.SP_LeerVistaEstadisticasObras
-AS
-BEGIN
-
-SELECT *
-                FROM AppData.VistaEstadisticasObras
-                ORDER BY
-                    Anio DESC,
-                    Mes DESC,
-                    CantidadObras DESC;
-
-END
-GO
-
-
-CREATE PROCEDURE AppData.SP_LeerVistaEstadisticasCotizaciones
-AS
-BEGIN
-
-SELECT *
-                FROM AppData.VistaEstadisticasCotizaciones
-                ORDER BY
-                    Anio DESC,
-                    Mes DESC,
-                    CantidadCotizaciones DESC
-
-END
-GO
-
-
 
 CREATE VIEW AppData.VistaEstadisticasCotizaciones
 AS
@@ -2140,6 +2110,37 @@ SELECT
 
 FROM ConTotales CT
 INNER JOIN TotalCliente TC ON TC.IdCliente = CT.IdCliente;
+GO
+
+
+
+CREATE PROCEDURE AppData.SP_LeerVistaEstadisticasObras
+AS
+BEGIN
+
+SELECT *
+                FROM AppData.VistaEstadisticasObras
+                ORDER BY
+                    Anio DESC,
+                    Mes DESC,
+                    CantidadObras DESC;
+
+END
+GO
+
+
+CREATE PROCEDURE AppData.SP_LeerVistaEstadisticasCotizaciones
+AS
+BEGIN
+
+SELECT *
+                FROM AppData.VistaEstadisticasCotizaciones
+                ORDER BY
+                    Anio DESC,
+                    Mes DESC,
+                    CantidadCotizaciones DESC
+
+END
 GO
 
 
