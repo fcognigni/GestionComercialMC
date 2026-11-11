@@ -1,13 +1,13 @@
 .main-header {
-  height: 80px;
+  height: 50px;
   background-color: var(--violeta-oscuro);
   color: white;
   box-shadow: 0 3px 10px rgba(0,0,0,0.15);
 }
 
 .logo-box {
-  width: 58px;
-  height: 58px;
+  width: 45px;
+  height: 45px;
   background-color: rgba(255,255,255,0.15);
   border-radius: 14px;
   color: white;

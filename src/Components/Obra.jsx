@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import SelectorCliente from "./SelectorCliente";
 import "../Styles/Cotizacion.css";
 
 export default function FormObra({ onSuccess }) {
@@ -103,7 +104,7 @@ export default function FormObra({ onSuccess }) {
     <form onSubmit={handleSubmit} className="form-cotizacion" noValidate>
       <div className="form-grid">
         <div className="form-group"><label>¿Está Cotizada?</label><select name="cotizada" value={formData.cotizada} onChange={handleChange}><option value="">Seleccione...</option><option value="si">Sí</option><option value="no">No</option></select>{errors.cotizada && <span className="error-msg">{errors.cotizada}</span>}</div>
-        <div className="form-group"><label>Cliente</label><select name="idCliente" value={formData.idCliente} onChange={handleChange}><option value="">Seleccione...</option>{clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>{errors.idCliente && <span className="error-msg">{errors.idCliente}</span>}</div>
+        <div className="form-group" col-span-2><label>Cliente</label><SelectorCliente clientes={clientes} value={formData.idCliente} onSeleccionar={handleChange} /></div>
         {formData.cotizada === "si" ? <div className="form-group"><label>Cotización vinculada</label><select name="idCotizacion" value={formData.idCotizacion} onChange={handleCotizacionChange} disabled={!formData.idCliente}><option value="">Seleccione...</option>{cotizaciones.map(c => <option key={c.id} value={c.id}>{c.prefijo}-{c.numero} - {c.referencia}</option>)}</select>{errors.idCotizacion && <span className="error-msg">{errors.idCotizacion}</span>}</div> : <div className="form-group col-span-2"><label>Referencia de obra</label><input type="text" name="referencia" value={formData.referencia} onChange={handleChange} />{errors.referencia && <span className="error-msg">{errors.referencia}</span>}</div>}
         <div className="form-group"><label>Monto pactado</label><input type="number" step="0.01" name="montoPactado" value={formData.montoPactado} onChange={handleChange} />{errors.montoPactado && <span className="error-msg">{errors.montoPactado}</span>}</div>
         <div className="form-group"><label>Moneda</label><select name="idMoneda" value={formData.idMoneda} onChange={handleChange}><option value="1">ARS ($)</option><option value="2">USD (US$)</option></select></div>

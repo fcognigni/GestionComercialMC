@@ -1,4 +1,5 @@
 import React from "react";
+import SelectorCliente from "./SelectorCliente";
 import { useState } from "react";
 import { useEffect } from "react";
 import '../Styles/Cotizacion.css'
@@ -678,37 +679,7 @@ export default function FormCotizacion({
           </div>
 
           {/* IdCliente (Simulado con un select) */}
-          <div className="form-group" col-span-2>
-            <label htmlFor="idCliente">Cliente</label>
-            <select
-              name="idCliente"
-              value={formData.idCliente}
-              onChange={handleChange}
-              className={
-                errors.idCliente
-                  ? "input-error"
-                  : ""
-              }
-            >
-
-              <option value="">
-                Seleccione...
-              </option>
-
-              {clientes.map(cliente => (
-
-                <option
-                  key={cliente.id}
-                  value={cliente.id}
-                >
-                  {cliente.nombre}
-                </option>
-
-              ))}
-
-            </select>
-            {errors.idCliente && <span className="error-msg">{errors.idCliente}</span>}
-          </div>
+          <div className="form-group" col-span-2><label>Cliente</label><SelectorCliente clientes={clientes} value={formData.idCliente} onSeleccionar={handleChange} /></div>
 
           {/* Referencia */}
           <div className="form-group col-span-2">
@@ -731,15 +702,15 @@ export default function FormCotizacion({
                   : ""
               }
             >
-              <option 
-              key={1}
-              value="1">
+              <option
+                key={1}
+                value="1">
                 Pesos
               </option>
 
-              <option 
-              key={2}
-              value="2">
+              <option
+                key={2}
+                value="2">
                 Dólares
               </option>
 

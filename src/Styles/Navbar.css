@@ -3,11 +3,11 @@
 }
 
 .nav-custom-btn {
-  background-color: var(--violeta-medio);
-  color: rgb(7, 0, 0) !important;
+  background-color: rgb(82, 2, 173);
+  color: rgb(255, 255, 255) !important;
   border-radius: 12px;
   padding: 14px;
-  font-size: 1.1rem;
+  font-size: 1.0rem;
   font-weight: 600;
   letter-spacing: 0.5px;
   transition: all 0.25s ease;

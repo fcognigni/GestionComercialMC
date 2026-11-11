@@ -41,6 +41,13 @@ namespace APIGesCom.Services
             using var reader =
                 await command.ExecuteReaderAsync();
 
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                Console.WriteLine(
+                    $"{reader.GetName(i)}: {reader.GetFieldType(i).Name}"
+                );
+            }
+
             while (await reader.ReadAsync())
             {
                 var dto = new EstadisticaCotizacionDTO
@@ -51,7 +58,7 @@ namespace APIGesCom.Services
                     Mes = reader.GetInt32(
                         reader.GetOrdinal("Mes")),
 
-                    IdCliente = reader.GetInt32(
+                    IdCliente = reader.GetInt64(
                         reader.GetOrdinal("IdCliente")),
 
                     NombreCliente = reader.GetString(
@@ -109,10 +116,10 @@ namespace APIGesCom.Services
                             reader.GetOrdinal(
                                 "PorcentajeLlevadasAObraSobreTotalAnio")),
 
-                    RankingCantidadMes = reader.GetInt32(
+                    RankingCantidadMes = reader.GetInt64(
                         reader.GetOrdinal("RankingCantidadMes")),
 
-                    RankingMontoMes = reader.GetInt32(
+                    RankingMontoMes = reader.GetInt64(
                         reader.GetOrdinal("RankingMontoMes")),
 
                     EsTop10Cantidad = reader.GetInt32(
