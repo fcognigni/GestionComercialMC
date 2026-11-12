@@ -103,16 +103,19 @@ namespace APIGesCom.Services
                     PorcentajeMontoAnio = reader.GetDecimal(
                         reader.GetOrdinal("PorcentajeMontoAnio")),
 
-                    PorcentajeLlevadasAObra = reader.GetDecimal(
-                        reader.GetOrdinal("PorcentajeLlevadasAObra")),
-
-                    PorcentajeLlevadasAObraSobreTotalMes =
-                        reader.GetDecimal(
+                    PorcentajeLlevadasAObraSobreTotalMes = reader["PorcentajeLlevadasAObraSobreTotalMes"] == DBNull.Value
+                    ? null
+                    : reader.GetDecimal(
                             reader.GetOrdinal(
                                 "PorcentajeLlevadasAObraSobreTotalMes")),
 
-                    PorcentajeLlevadasAObraSobreTotalAnio =
-                        reader.GetDecimal(
+                    PorcentajeLlevadasAObra = reader["PorcentajeLlevadasAObra"] == DBNull.Value 
+                    ? null 
+                    : reader.GetDecimal(reader.GetOrdinal("PorcentajeLlevadasAObra")),
+
+                    PorcentajeLlevadasAObraSobreTotalAnio = reader["PorcentajeLlevadasAObraSobreTotalMes"] == DBNull.Value
+                    ? null
+                    : reader.GetDecimal(
                             reader.GetOrdinal(
                                 "PorcentajeLlevadasAObraSobreTotalAnio")),
 

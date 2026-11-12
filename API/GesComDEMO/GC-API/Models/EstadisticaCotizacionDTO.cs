@@ -30,10 +30,10 @@
         public decimal PorcentajeMontoMes { get; set; }
         public decimal PorcentajeMontoAnio { get; set; }
 
-        public decimal PorcentajeLlevadasAObra { get; set; }
+        public decimal? PorcentajeLlevadasAObra { get; set; }
 
-        public decimal PorcentajeLlevadasAObraSobreTotalMes { get; set; }
-        public decimal PorcentajeLlevadasAObraSobreTotalAnio { get; set; }
+        public decimal? PorcentajeLlevadasAObraSobreTotalMes { get; set; }
+        public decimal? PorcentajeLlevadasAObraSobreTotalAnio { get; set; }
 
         // Rankings mensuales
         public long RankingCantidadMes { get; set; }
